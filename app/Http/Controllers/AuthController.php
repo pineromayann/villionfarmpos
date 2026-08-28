@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -19,11 +21,25 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        try {
+            $authenticated = Auth::attempt($credentials, $request->boolean('remember'));
+        } catch (Throwable $e) {
+            Log::warning('Login attempt failed due to an unexpected error.', [
+                'email' => $credentials['email'],
+                'error' => $e->getMessage(),
+                'error_class' => get_class($e),
+            ]);
+
+            return back()->withErrors([
+                'email' => 'We could not process your login right now. Please try again later.',
+            ])->onlyInput('email');
+        }
+
+        if ($authenticated) {
             $request->session()->regenerate();
 
             return redirect()->intended(route('dashboard'));
