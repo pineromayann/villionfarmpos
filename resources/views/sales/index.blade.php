@@ -49,8 +49,8 @@
                                 <td class="py-3 text-right font-semibold text-gray-900">${{ number_format($sale->total, 2) }}</td>
 
                                 <template x-teleport="body">
-                                    <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-                                        <div @click.outside="open = false" class="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl">
+<div x-show="open" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/30 p-4">
+    <div @click.outside="open = false" class="mx-auto w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl">
                                             <div class="mb-4 flex items-center justify-between">
                                                 <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900">
                                                     <x-icon name="receipt" class="h-5 w-5 text-gray-400" />

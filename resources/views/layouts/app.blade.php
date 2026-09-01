@@ -16,7 +16,7 @@
         ></div>
 
         <aside
-            class="fixed inset-y-0 left-0 z-40 w-60 shrink-0 -translate-x-full transform border-r border-gray-200 bg-white transition-transform duration-200 md:static md:translate-x-0"
+            class="fixed inset-y-0 left-0 z-40 flex w-60 shrink-0 -translate-x-full transform flex-col border-r border-gray-200 bg-white transition-transform duration-200 md:static md:translate-x-0"
             :class="sidebarOpen && '!translate-x-0'"
         >
             <div class="flex items-center gap-3 px-5 py-5">
@@ -57,6 +57,22 @@
                     @endforeach
                 </ul>
             </nav>
+
+            <div class="mt-auto border-t border-gray-200 p-3">
+                @auth
+                    <div class="mb-1 px-2.5 pt-2">
+                        <p class="truncate text-sm font-medium text-gray-900">{{ auth()->user()->name }}</p>
+                        <p class="truncate text-xs text-gray-500">{{ auth()->user()->email }}</p>
+                    </div>
+                @endauth
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900">
+                        <x-icon name="logout" class="h-[18px] w-[18px]" />
+                        Sign out
+                    </button>
+                </form>
+            </div>
         </aside>
 
         <div class="flex min-w-0 flex-1 flex-col">
