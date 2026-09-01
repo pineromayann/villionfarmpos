@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['sale_id', 'product_id', 'quantity', 'unit_price', 'line_total'])]
 class SaleItem extends Model
 {
     use HasFactory;
+
+    /**
+     * @var array<int, string>
+     */
+    protected $fillable = ['sale_id', 'product_id', 'quantity', 'unit_price', 'line_total'];
 
     /**
      * @return array<string, string>

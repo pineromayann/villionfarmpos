@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'farm_name', 'phone', 'location', 'crop', 'hectares', 'notes'])]
 class Customer extends Model
 {
     use HasFactory;
+
+    /**
+     * @var array<int, string>
+     */
+    protected $fillable = ['name', 'farm_name', 'phone', 'location', 'crop', 'hectares', 'notes'];
 
     /**
      * @return HasMany<Sale, $this>

@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'active_ingredient', 'batch_number', 'expiry_date', 'price', 'stock', 'unit'])]
 class Product extends Model
 {
     use HasFactory;
+
+    /**
+     * @var array<int, string>
+     */
+    protected $fillable = ['name', 'active_ingredient', 'batch_number', 'expiry_date', 'price', 'stock', 'unit'];
 
     const LOW_STOCK_THRESHOLD = 10;
 
