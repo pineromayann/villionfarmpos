@@ -19,7 +19,7 @@ class SaleController extends Controller
             'totalRevenue' => $totalRevenue,
             'itemsSold' => $itemsSold,
             'avgSale' => $saleCount > 0 ? $totalRevenue / $saleCount : 0,
-            'transactions' => Sale::with('customer')->latest()->get(),
+            'transactions' => Sale::with(['customer', 'items.product'])->latest()->get(),
             'topProducts' => Product::query()
                 ->withSum('saleItems as units_sold', 'quantity')
                 ->withSum('saleItems as revenue', 'line_total')
