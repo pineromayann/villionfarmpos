@@ -16,9 +16,9 @@
         <div class="rounded-xl border border-gray-200 bg-white p-5">
             <div class="flex items-center justify-between">
                 <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Revenue today</p>
-                <x-icon name="dollar" class="h-4 w-4 text-gray-400" />
+                <x-icon name="peso" class="h-4 w-4 text-gray-400" />
             </div>
-            <p class="mt-2 text-2xl font-bold text-gray-900">${{ number_format($revenueToday, 2) }}</p>
+            <p class="mt-2 text-2xl font-bold text-gray-900">₱{{ number_format($revenueToday, 2) }}</p>
         </div>
 
         <div class="rounded-xl border border-gray-200 bg-white p-5">
@@ -26,7 +26,7 @@
                 <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Total revenue</p>
                 <x-icon name="trending-up" class="h-4 w-4 text-gray-400" />
             </div>
-            <p class="mt-2 text-2xl font-bold text-gray-900">${{ number_format($totalRevenue, 2) }}</p>
+            <p class="mt-2 text-2xl font-bold text-gray-900">₱{{ number_format($totalRevenue, 2) }}</p>
         </div>
 
         <div class="rounded-xl border border-gray-200 bg-white p-5">
@@ -132,7 +132,7 @@
                         <p class="text-sm font-semibold text-gray-900">{{ $sale->customer?->name ?? 'Walk-in customer' }}</p>
                         <p class="text-xs text-gray-500">{{ $sale->created_at->format('n/j/Y, g:i:s A') }} &middot; {{ $sale->itemCount() }} item{{ $sale->itemCount() === 1 ? '' : 's' }}</p>
                     </div>
-                    <p class="text-sm font-semibold text-gray-900">${{ number_format($sale->total, 2) }}</p>
+                    <p class="text-sm font-semibold text-gray-900">₱{{ number_format($sale->total, 2) }}</p>
                 </li>
             @empty
                 <li class="py-3 text-sm text-gray-500">No sales recorded yet.</li>

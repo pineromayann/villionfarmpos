@@ -76,7 +76,7 @@
         </svg>
     @break
 
-    @case('dollar')
+    @case('peso')
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="{{ $classes }}">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m3-8.25c0-1.243-1.343-2.25-3-2.25s-3 1.007-3 2.25 1.343 2.25 3 2.25 3 1.007 3 2.25-1.343 2.25-3 2.25-3-1.007-3-2.25" />
         </svg>

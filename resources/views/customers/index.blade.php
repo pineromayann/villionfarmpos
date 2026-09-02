@@ -92,7 +92,7 @@
 
                 <div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 text-sm">
                     <span class="text-gray-500">Lifetime spend</span>
-                    <span class="font-semibold text-gray-900">${{ number_format($customer->lifetimeSpend(), 2) }}</span>
+                    <span class="font-semibold text-gray-900">₱{{ number_format($customer->lifetimeSpend(), 2) }}</span>
                 </div>
 
                 <template x-teleport="body">

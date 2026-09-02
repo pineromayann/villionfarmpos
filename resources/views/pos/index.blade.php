@@ -59,7 +59,7 @@
                         </div>
                         <p class="mt-0.5 text-xs text-sky-600">{{ $product->active_ingredient }}</p>
                         <div class="mt-3 flex items-center justify-between text-sm">
-                            <span class="font-semibold text-gray-900">${{ number_format($product->price, 2) }}</span>
+                            <span class="font-semibold text-gray-900">₱{{ number_format($product->price, 2) }}</span>
                             <span class="text-gray-400">exp {{ $product->expiry_date?->format('n/j/Y') }}</span>
                         </div>
                     </button>
@@ -103,7 +103,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="font-medium text-gray-900" x-text="'$' + (item.price * item.qty).toFixed(2)"></span>
+                                    <span class="font-medium text-gray-900" x-text="'₱' + (item.price * item.qty).toFixed(2)"></span>
                                     <button type="button" @click="removeFromCart(index)" class="text-gray-400 hover:text-red-600">
                                         <x-icon name="x" class="h-4 w-4" />
                                     </button>
@@ -115,7 +115,7 @@
 
                 <div class="mt-4 flex items-center justify-between text-sm">
                     <span class="text-gray-500">Subtotal</span>
-                    <span class="font-medium text-gray-900" x-text="'$' + subtotal.toFixed(2)"></span>
+                    <span class="font-medium text-gray-900" x-text="'₱' + subtotal.toFixed(2)"></span>
                 </div>
 
                 <div class="mt-2 flex items-center justify-between text-sm">
@@ -134,7 +134,7 @@
 
                 <div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
                     <span class="font-semibold text-gray-900">Total</span>
-                    <span class="text-lg font-bold text-gray-900" x-text="'$' + total.toFixed(2)"></span>
+                    <span class="text-lg font-bold text-gray-900" x-text="'₱' + total.toFixed(2)"></span>
                 </div>
 
                 <button

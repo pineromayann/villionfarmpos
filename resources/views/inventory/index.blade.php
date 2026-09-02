@@ -76,7 +76,7 @@
                                     <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">soon</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-4 text-gray-700">${{ number_format($product->price, 2) }}</td>
+                            <td class="px-5 py-4 text-gray-700">₱{{ number_format($product->price, 2) }}</td>
                             <td class="px-5 py-4 {{ $product->isLowStock() ? 'font-medium text-red-600' : 'text-gray-700' }}">
                                 {{ rtrim(rtrim(number_format($product->stock, 2), '0'), '.') }} {{ $product->unit }}
                             </td>

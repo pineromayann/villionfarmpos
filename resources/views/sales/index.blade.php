@@ -8,7 +8,7 @@
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div class="rounded-xl border border-gray-200 bg-white p-5">
             <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Total revenue</p>
-            <p class="mt-1 text-2xl font-bold text-gray-900">${{ number_format($totalRevenue, 2) }}</p>
+            <p class="mt-1 text-2xl font-bold text-gray-900">₱{{ number_format($totalRevenue, 2) }}</p>
         </div>
         <div class="rounded-xl border border-gray-200 bg-white p-5">
             <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Items sold</p>
@@ -16,7 +16,7 @@
         </div>
         <div class="rounded-xl border border-gray-200 bg-white p-5">
             <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Avg. sale</p>
-            <p class="mt-1 text-2xl font-bold text-gray-900">${{ number_format($avgSale, 2) }}</p>
+            <p class="mt-1 text-2xl font-bold text-gray-900">₱{{ number_format($avgSale, 2) }}</p>
         </div>
     </div>
 
@@ -46,7 +46,7 @@
                                         {{ str($sale->payment_method)->replace('_', ' ')->title() }}
                                     </span>
                                 </td>
-                                <td class="py-3 text-right font-semibold text-gray-900">${{ number_format($sale->total, 2) }}</td>
+                                <td class="py-3 text-right font-semibold text-gray-900">₱{{ number_format($sale->total, 2) }}</td>
 
                                 <template x-teleport="body">
 <div x-show="open" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/30 p-4">
@@ -97,8 +97,8 @@
                                                                 <td class="py-2.5 text-center text-gray-700">
                                                                     {{ rtrim(rtrim(number_format($item->quantity, 2), '0'), '.') }} {{ $item->product?->unit }}
                                                                 </td>
-                                                                <td class="py-2.5 text-right text-gray-700">${{ number_format($item->unit_price, 2) }}</td>
-                                                                <td class="py-2.5 text-right font-semibold text-gray-900">${{ number_format($item->line_total, 2) }}</td>
+                                                                <td class="py-2.5 text-right text-gray-700">₱{{ number_format($item->unit_price, 2) }}</td>
+                                                                <td class="py-2.5 text-right font-semibold text-gray-900">₱{{ number_format($item->line_total, 2) }}</td>
                                                             </tr>
                                                         @empty
                                                             <tr>
@@ -112,15 +112,15 @@
                                             <div class="mt-4 space-y-1.5 border-t border-gray-100 pt-3 text-sm">
                                                 <div class="flex justify-between text-gray-600">
                                                     <span>Subtotal</span>
-                                                    <span>${{ number_format($sale->subtotal, 2) }}</span>
+                                                    <span>₱{{ number_format($sale->subtotal, 2) }}</span>
                                                 </div>
                                                 <div class="flex justify-between text-gray-600">
                                                     <span>Discount</span>
-                                                    <span>-${{ number_format($sale->discount, 2) }}</span>
+                                                    <span>-₱{{ number_format($sale->discount, 2) }}</span>
                                                 </div>
                                                 <div class="flex justify-between font-semibold text-gray-900">
                                                     <span>Total</span>
-                                                    <span>${{ number_format($sale->total, 2) }}</span>
+                                                    <span>₱{{ number_format($sale->total, 2) }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -147,7 +147,7 @@
                             <p class="font-medium text-gray-900">{{ $product->name }}</p>
                             <p class="text-gray-500">{{ (int) $product->units_sold }} units sold</p>
                         </div>
-                        <span class="font-semibold text-gray-900">${{ number_format($product->revenue, 2) }}</span>
+                        <span class="font-semibold text-gray-900">₱{{ number_format($product->revenue, 2) }}</span>
                     </li>
                 @empty
                     <li class="text-sm text-gray-500">No sales recorded yet.</li>
