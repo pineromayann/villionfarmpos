@@ -15,7 +15,7 @@
     <table class="summary">
         <tr>
             <td class="label">Total revenue</td>
-            <td class="value">₱{{ number_format($totalRevenue, 2) }}</td>
+            <td class="value">{{ number_format($totalRevenue, 2) }}</td>
             <td class="label">Items sold</td>
             <td class="value">{{ (int) $itemsSold }}</td>
             <td class="label">Transactions</td>
@@ -42,9 +42,9 @@
                     <td>{{ $sale->customer?->name ?? 'Walk-in' }}</td>
                     <td>{{ $sale->itemCount() }}</td>
                     <td>{{ \Illuminate\Support\Str::of($sale->payment_method)->replace('_', ' ')->title() }}</td>
-                    <td class="text-right">₱{{ number_format($sale->subtotal, 2) }}</td>
-                    <td class="text-right">₱{{ number_format($sale->discount, 2) }}</td>
-                    <td class="text-right">₱{{ number_format($sale->total, 2) }}</td>
+                    <td class="text-right">{{ number_format($sale->subtotal, 2) }}</td>
+                    <td class="text-right">{{ number_format($sale->discount, 2) }}</td>
+                    <td class="text-right">{{ number_format($sale->total, 2) }}</td>
                 </tr>
             @empty
                 <tr>
@@ -68,7 +68,7 @@
                 <tr>
                     <td>{{ $product['name'] }}</td>
                     <td class="text-right">{{ (int) $product['units_sold'] }}</td>
-                    <td class="text-right">₱{{ number_format($product['revenue'], 2) }}</td>
+                    <td class="text-right">{{ number_format($product['revenue'], 2) }}</td>
                 </tr>
             @empty
                 <tr>

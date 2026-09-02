@@ -28,7 +28,7 @@
                     <td>{{ $customer->location }}</td>
                     <td>{{ $customer->crop }}</td>
                     <td class="text-right">{{ $customer->hectares }}</td>
-                    <td class="text-right">₱{{ number_format($customer->lifetimeSpend(), 2) }}</td>
+                    <td class="text-right">{{ number_format($customer->lifetimeSpend(), 2) }}</td>
                 </tr>
             @empty
                 <tr>
