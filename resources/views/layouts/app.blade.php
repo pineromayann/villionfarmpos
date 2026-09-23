@@ -38,6 +38,9 @@
                         ['route' => 'pos.index', 'icon' => 'pos', 'label' => 'Point of Sale'],
                         ['route' => 'inventory.index', 'icon' => 'inventory', 'label' => 'Inventory'],
                         ['route' => 'sales.index', 'icon' => 'sales', 'label' => 'Sales'],
+                        ['route' => 'stock.movements.index', 'icon' => 'stock', 'label' => 'Stock'],
+                        ['route' => 'suppliers.index', 'icon' => 'suppliers', 'label' => 'Suppliers'],
+                        ['route' => 'refunds.index', 'icon' => 'refunds', 'label' => 'Refunds'],
                         ['route' => 'customers.index', 'icon' => 'customers', 'label' => 'Customers'],
                         ['route' => 'reports.index', 'icon' => 'report', 'label' => 'Reports'],
                     ];

@@ -44,6 +44,24 @@ class Sale extends Model
         return $this->hasMany(SaleItem::class);
     }
 
+    /**
+     * @return HasMany<Refund, $this>
+     */
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
+    }
+
+    public function refundTotal(): float
+    {
+        return (float) $this->refunds()->sum('line_total');
+    }
+
+    public function refundedQuantityFor(SaleItem $item): float
+    {
+        return (float) $this->refunds()->where('sale_item_id', $item->id)->sum('quantity');
+    }
+
     public function itemCount(): int
     {
         return (int) $this->items()->sum('quantity');

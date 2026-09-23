@@ -3,6 +3,7 @@
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\StockMovement;
 use App\Models\User;
 
 beforeEach(function () {
@@ -136,4 +137,35 @@ test('the customers pdf and csv reports can be exported', function () {
     $csv->assertOk();
     $csv->assertHeader('content-type', 'text/csv; charset=UTF-8');
     expect($csv->streamedContent())->toContain('Amina Yusuf');
+});
+
+test('the stock movements pdf and csv reports can be exported', function () {
+    $product = Product::factory()->create(['name' => 'Karate 2.5 WG']);
+    StockMovement::factory()->incoming()->create([
+        'product_id' => $product->id,
+        'quantity' => 5,
+        'reason' => 'Stock in',
+    ]);
+
+    $pdf = $this->get(route('reports.stock.pdf'));
+    $pdf->assertOk();
+    $pdf->assertHeader('content-type', 'application/pdf');
+
+    $csv = $this->get(route('reports.stock.csv'));
+    $csv->assertOk();
+    $csv->assertHeader('content-type', 'text/csv; charset=UTF-8');
+    expect($csv->streamedContent())->toContain('Karate 2.5 WG');
+});
+
+test('the stock movements csv report can be filtered by category', function () {
+    $foliar = Product::factory()->create(['name' => 'Foliar Thing', 'category' => 'foliar']);
+    $herbicide = Product::factory()->create(['name' => 'Herb Thing', 'category' => 'herbicide']);
+    StockMovement::factory()->incoming()->create(['product_id' => $foliar->id, 'quantity' => 5]);
+    StockMovement::factory()->incoming()->create(['product_id' => $herbicide->id, 'quantity' => 5]);
+
+    $response = $this->get(route('reports.stock.csv', ['category' => 'herbicide']));
+
+    $response->assertOk();
+    expect($response->streamedContent())->toContain('Herb Thing');
+    expect($response->streamedContent())->not->toContain('Foliar Thing');
 });

@@ -105,6 +105,33 @@ test('a sale is rejected when quantity exceeds stock', function () {
     expect($product->fresh()->stock)->toEqual(2);
 });
 
+test('a sale records an out movement for refunds tracking', function () {
+    $product = Product::factory()->create([
+        'price' => 10,
+        'cost_price' => null,
+        'dealers_price_cod' => null,
+        'terms_30_days' => null,
+        'stock' => 20,
+    ]);
+
+    $this->post(route('pos.store'), [
+        'payment_method' => 'cash',
+        'cart' => json_encode([
+            ['product_id' => $product->id, 'qty' => 3],
+        ]),
+    ]);
+
+    $this->assertDatabaseHas('stock_movements', [
+        'product_id' => $product->id,
+        'type' => 'out',
+        'quantity' => 3,
+        'reason' => 'Sale',
+        'ref_type' => 'sale',
+        'ref_id' => Sale::first()->id,
+        'user_id' => auth()->id(),
+    ]);
+});
+
 test('a sale requires at least one cart item', function () {
     $response = $this->post(route('pos.store'), [
         'payment_method' => 'cash',

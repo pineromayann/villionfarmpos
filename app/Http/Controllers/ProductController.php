@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Supplier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,6 +14,7 @@ class ProductController extends Controller
     {
         return view('inventory.index', [
             'products' => Product::orderBy('name')->get(),
+            'suppliers' => Supplier::orderBy('name')->get(),
         ]);
     }
 

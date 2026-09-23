@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\StockMovement;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -109,6 +110,42 @@ class ReportController extends Controller
         );
     }
 
+    public function stockPdf(Request $request): Response
+    {
+        [$movements, $range] = $this->filteredMovements($request);
+
+        $totalIn = $movements->where('type', 'in')->sum('quantity');
+        $totalOut = $movements->where('type', 'out')->sum('quantity');
+
+        return Pdf::loadView('reports.pdf.stock-movements', [
+            'movements' => $movements,
+            'range' => $range,
+            'generatedAt' => now(),
+            'totalIn' => $totalIn,
+            'totalOut' => $totalOut,
+            'netChange' => $totalIn - $totalOut,
+        ])->download('stock-movements-report.pdf');
+    }
+
+    public function stockCsv(Request $request): StreamedResponse
+    {
+        [$movements] = $this->filteredMovements($request);
+
+        return $this->streamCsv(
+            'stock-movements-report.csv',
+            ['Date', 'Product', 'Type', 'Quantity', 'Reason', 'Source', 'Unit cost'],
+            $movements->map(fn (StockMovement $movement) => [
+                $movement->created_at->format('Y-m-d H:i'),
+                $movement->product?->name ?? 'Unknown product',
+                $movement->type,
+                number_format((float) $movement->quantity, 2),
+                $movement->reason ?? '',
+                $movement->supplier?->name ?? ($movement->ref_type === 'sale' ? "Sale #{$movement->ref_id}" : ''),
+                $movement->unit_cost !== null ? number_format((float) $movement->unit_cost, 2) : '',
+            ])
+        );
+    }
+
     /**
      * @return array{0: Collection<int, Sale>, 1: array{from: ?Carbon, to: ?Carbon, category: ?string}}
      */
@@ -172,6 +209,31 @@ class ReportController extends Controller
         return $request->validate([
             'category' => ['nullable', 'in:'.implode(',', Product::CATEGORIES)],
         ])['category'] ?? null;
+    }
+
+    /**
+     * @return array{0: Collection<int, StockMovement>, 1: array{from: ?Carbon, to: ?Carbon, category: ?string}}
+     */
+    private function filteredMovements(Request $request): array
+    {
+        $validated = $request->validate([
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+            'category' => ['nullable', 'in:'.implode(',', Product::CATEGORIES)],
+        ]);
+
+        $from = isset($validated['date_from']) ? Carbon::parse($validated['date_from'])->startOfDay() : null;
+        $to = isset($validated['date_to']) ? Carbon::parse($validated['date_to'])->endOfDay() : null;
+        $category = $validated['category'] ?? null;
+
+        $movements = StockMovement::with(['product', 'supplier'])
+            ->when($from, fn ($query) => $query->where('created_at', '>=', $from))
+            ->when($to, fn ($query) => $query->where('created_at', '<=', $to))
+            ->when($category, fn ($query) => $query->whereHas('product', fn ($query) => $query->where('category', $category)))
+            ->latest()
+            ->get();
+
+        return [$movements, ['from' => $from, 'to' => $to, 'category' => $category]];
     }
 
     /**

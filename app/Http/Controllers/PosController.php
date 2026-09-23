@@ -81,6 +81,15 @@ class PosController extends Controller
                 ]);
 
                 $line['product']->decrement('stock', $line['quantity']);
+
+                $line['product']->stockMovements()->create([
+                    'type' => 'out',
+                    'quantity' => $line['quantity'],
+                    'reason' => 'Sale',
+                    'ref_type' => 'sale',
+                    'ref_id' => $sale->id,
+                    'user_id' => auth()->id(),
+                ]);
             }
 
             return $sale;

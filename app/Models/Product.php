@@ -58,6 +58,22 @@ class Product extends Model
         return $this->hasMany(SaleItem::class);
     }
 
+    /**
+     * @return HasMany<StockMovement, $this>
+     */
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
+    }
+
+    /**
+     * @return HasMany<Refund, $this>
+     */
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
+    }
+
     public function salePrice(): float
     {
         return (float) ($this->dealers_price_cod ?? $this->terms_30_days ?? $this->cost_price ?? $this->price);
