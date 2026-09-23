@@ -244,10 +244,15 @@
                         </td>
                         <td class="px-5 py-3 text-gray-700">{{ ucfirst($movement->reason ?? '—') }}</td>
                         <td class="px-5 py-3 text-gray-700">
-                            @if ($movement->supplier)
-                                {{ $movement->supplier->name }}
+                            @if ($movement->ref_type === 'procurement')
+                                <a href="{{ route('procurement.index') }}" class="text-sky-600 hover:underline">PO #{{ $movement->ref_id }}</a>
+                                @if ($movement->supplier)
+                                    &middot; {{ $movement->supplier->name }}
+                                @endif
                             @elseif ($movement->ref_type === 'sale')
                                 <a href="{{ route('sales.index') }}" class="text-sky-600 hover:underline">Sale #{{ $movement->ref_id }}</a>
+                            @elseif ($movement->supplier)
+                                {{ $movement->supplier->name }}
                             @else
                                 @if ($movement->unit_cost !== null)
                                     ₱{{ number_format($movement->unit_cost, 2) }}/unit

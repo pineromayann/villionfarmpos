@@ -68,6 +68,7 @@
                         <th class="px-5 py-3">Cost</th>
                         <th class="px-5 py-3">Dealer price</th>
                         <th class="px-5 py-3">Stock</th>
+                        <th class="px-5 py-3">Consigned</th>
                         <th class="px-5 py-3"></th>
                     </tr>
                 </thead>
@@ -105,6 +106,9 @@
                             </td>
                             <td class="px-5 py-4 {{ $product->isLowStock() ? 'font-medium text-red-600' : 'text-gray-700' }}">
                                 {{ rtrim(rtrim(number_format($product->stock, 2), '0'), '.') }} {{ $product->unit }}
+                            </td>
+                            <td class="px-5 py-4">
+                                <span class="text-violet-700">{{ rtrim(rtrim(number_format($consignedByProduct[$product->id] ?? 0, 2), '0'), '.') }} {{ $product->unit }}</span>
                             </td>
                             <td class="px-5 py-4">
                                 <div class="flex items-center justify-end gap-3">
@@ -146,7 +150,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-5 py-8 text-center text-gray-500">No products in inventory yet.</td>
+                            <td colspan="9" class="px-5 py-8 text-center text-gray-500">No products in inventory yet.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -20,10 +20,10 @@
             addToCart(product) {
                 const unit = this.defaultUnit(product);
                 const conversion = Number(unit.conversion) || 1;
-                const existing = this.cart.find((i) => i.id === product.id);
+                const existing = this.cart.find((i) => i.id === product.id && i.partnerId === '');
                 if (existing) {
-                    if ((existing.qty + 1) * existing.conversion <= existing.stock) existing.qty++;
-                } else if (product.stock > 0) {
+                    if (existing.qty + 1 <= this.limit(existing)) existing.qty++;
+                } else if (product.stock > 0 || product.consignedPartners?.length) {
                     this.cart.push({
                         id: product.id,
                         name: product.name,
@@ -34,8 +34,22 @@
                         conversion,
                         unit: unit.abbreviation,
                         units: product.sellingUnits || [],
+                        partners: product.consignedPartners || [],
+                        partnerId: '',
                     });
                 }
+            },
+            limit(item) {
+                if (item.partnerId) {
+                    const partner = item.partners.find((p) => Number(p.id) === Number(item.partnerId));
+                    return partner ? Math.max(0, Math.floor(partner.remaining / item.conversion)) : 0;
+                }
+                return Math.floor(item.stock / item.conversion);
+            },
+            pickPartner(item, partnerId) {
+                item.partnerId = partnerId ? String(partnerId) : '';
+                const maxQty = Math.max(1, this.limit(item));
+                if (item.qty > maxQty) item.qty = maxQty;
             },
             lineUnit(item, unitId) {
                 const unit = item.units.find((u) => Number(u.id) === Number(unitId)) || item.units[0];
@@ -43,8 +57,8 @@
                 item.unitId = Number(unit.id) ?? null;
                 item.conversion = Number(unit.conversion) || 1;
                 item.unit = unit.abbreviation;
-                const maxQty = Math.floor(item.stock / item.conversion);
-                if (item.qty > maxQty) item.qty = Math.max(1, maxQty);
+                const maxQty = Math.max(1, this.limit(item));
+                if (item.qty > maxQty) item.qty = maxQty;
             },
             baseQty(item) {
                 return item.qty * item.conversion;
@@ -106,6 +120,7 @@
                             'price' => $product->salePrice(),
                             'unit' => $product->unit,
                             'stock' => (float) $product->stock,
+                            'consignedPartners' => $consignedByProduct[$product->id] ?? [],
                             'sellingUnits' => $product->sellingUnits->map(fn ($pu) => [
                                 'id' => $pu->unit_id,
                                 'abbreviation' => $pu->unit->abbreviation,
@@ -137,7 +152,7 @@
 
             <form method="POST" action="{{ route('pos.store') }}" class="mt-4">
                 @csrf
-                <input type="hidden" name="cart" :value="JSON.stringify(cart.map(i => ({ product_id: i.id, unit_id: i.unitId, qty: i.qty })))">
+                <input type="hidden" name="cart" :value="JSON.stringify(cart.map(i => ({ product_id: i.id, unit_id: i.unitId, qty: i.qty, partner_id: i.partnerId || '' })))">
 
                 <label class="block text-sm font-medium text-gray-700">Customer</label>
                 <select name="customer_id" x-model="customerId" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
@@ -160,7 +175,7 @@
                                     <div class="mt-1 flex items-center gap-1.5 text-gray-500">
                                         <button type="button" @click="item.qty > 1 ? item.qty-- : removeFromCart(index)" class="rounded border border-gray-200 px-1.5 leading-5 hover:bg-gray-50">-</button>
                                         <span x-text="item.qty"></span>
-                                        <button type="button" @click="(item.qty + 1) * item.conversion <= item.stock && item.qty++" class="rounded border border-gray-200 px-1.5 leading-5 hover:bg-gray-50">+</button>
+                                        <button type="button" @click="item.qty < limit(item) && item.qty++" class="rounded border border-gray-200 px-1.5 leading-5 hover:bg-gray-50">+</button>
                                         <select
                                             @change="lineUnit(item, $event.target.value)"
                                             class="rounded border border-gray-200 px-1.5 py-0.5 text-xs"
@@ -171,6 +186,18 @@
                                         </select>
                                         <span class="text-xs text-gray-400" x-text="item.unitId !== null ? '= ' + baseQty(item).toFixed(2) + ' ' + (item.units.find(u => u.base)?.abbreviation || '') : ''"></span>
                                     </div>
+
+                                    <template x-if="item.partners.length">
+                                        <select
+                                            @change="pickPartner(item, $event.target.value)"
+                                            class="mt-1.5 w-full rounded border border-dashed border-emerald-200 bg-emerald-50/50 px-2 py-1 text-xs text-emerald-800 focus:border-emerald-400 focus:outline-none"
+                                        >
+                                            <option value="" :selected="item.partnerId === ''">Own stock</option>
+                                            <template x-for="partner in item.partners" :key="partner.id">
+                                                <option :value="partner.id" :selected="Number(item.partnerId) === Number(partner.id)" x-text="`${partner.name} (${partner.remaining} ${partner.unit})`"></option>
+                                            </template>
+                                        </select>
+                                    </template>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="font-medium text-gray-900" x-text="'₱' + (item.price * item.qty * item.conversion).toFixed(2)"></span>

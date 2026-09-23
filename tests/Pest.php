@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\ConsignmentPartner;
+use App\Models\Product;
+use App\Models\Unit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +47,46 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function uomUnit(string $abbreviation): Unit
 {
-    // ..
+    return Unit::where('abbreviation', $abbreviation)->firstOrFail();
+}
+
+function uomProductWithDozen(array $attributes = []): Product
+{
+    $product = Product::factory()->create([
+        'base_unit_id' => uomUnit('pc')->id,
+        'stock' => 48,
+        'price' => 5,
+        'cost_price' => null,
+        'dealers_price_cod' => null,
+        'terms_30_days' => null,
+        ...$attributes,
+    ]);
+
+    $product->sellingUnits()->create([
+        'unit_id' => uomUnit('dz')->id,
+        'conversion_to_base' => 12,
+        'is_base' => false,
+    ]);
+
+    return $product;
+}
+
+function consignmentPartner(): ConsignmentPartner
+{
+    return ConsignmentPartner::factory()->create();
+}
+
+function consignmentProduct(array $attributes = []): Product
+{
+    return Product::factory()->create([
+        'base_unit_id' => uomUnit('pc')->id,
+        'stock' => 48,
+        'price' => 5,
+        'cost_price' => null,
+        'dealers_price_cod' => null,
+        'terms_30_days' => null,
+        ...$attributes,
+    ]);
 }

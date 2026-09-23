@@ -78,6 +78,14 @@ class Product extends Model
     }
 
     /**
+     * @return HasMany<PurchaseOrderItem, $this>
+     */
+    public function purchaseOrderItems(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderItem::class);
+    }
+
+    /**
      * @return BelongsTo<Unit, $this>
      */
     public function baseUnit(): BelongsTo

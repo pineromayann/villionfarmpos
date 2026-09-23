@@ -28,4 +28,12 @@ class Unit extends Model
     {
         return $this->hasMany(ProductUnit::class);
     }
+
+    /**
+     * @return HasMany<PurchaseOrderItem, $this>
+     */
+    public function purchaseOrderItems(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderItem::class);
+    }
 }

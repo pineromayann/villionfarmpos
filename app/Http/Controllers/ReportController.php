@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\ConsignmentStockService;
+use App\Models\ConsignmentPartner;
+use App\Models\ConsignmentSale;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\PurchaseOrder;
 use App\Models\Sale;
 use App\Models\StockMovement;
+use App\Models\Supplier;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -19,7 +24,10 @@ class ReportController extends Controller
 {
     public function index(): View
     {
-        return view('reports.index');
+        return view('reports.index', [
+            'suppliers' => Supplier::orderBy('name')->get(),
+            'consignmentPartners' => ConsignmentPartner::orderBy('name')->get(),
+        ]);
     }
 
     public function salesPdf(Request $request): Response
@@ -244,6 +252,130 @@ class ReportController extends Controller
         return Product::when($category, fn ($query) => $query->byCategory($category))
             ->orderBy('name')
             ->get();
+    }
+
+    public function purchasesPdf(Request $request): Response
+    {
+        [$orders, $range] = $this->filteredPurchaseOrders($request);
+
+        return Pdf::loadView('reports.pdf.purchases', [
+            'orders' => $orders,
+            'range' => $range,
+            'generatedAt' => now(),
+            'totalSpend' => $orders->where('status', '!=', 'cancelled')->sum('total'),
+            'receivedSpend' => $orders->where('status', 'received')->sum('total'),
+        ])->download('purchases-report.pdf');
+    }
+
+    public function purchasesCsv(Request $request): StreamedResponse
+    {
+        [$orders] = $this->filteredPurchaseOrders($request);
+
+        return $this->streamCsv(
+            'purchases-report.csv',
+            ['Order', 'Order date', 'Supplier', 'Products', 'Status', 'Total'],
+            $orders->map(fn (PurchaseOrder $order) => [
+                "#{$order->id}",
+                $order->order_date->format('Y-m-d'),
+                $order->supplier?->name ?? '',
+                $order->itemCount(),
+                $order->status,
+                number_format((float) $order->total, 2),
+            ])
+        );
+    }
+
+    public function consignmentPdf(Request $request): Response
+    {
+        [$rows, $range, $partners] = $this->filteredConsignment($request);
+
+        return Pdf::loadView('reports.pdf.consignment', [
+            'rows' => $rows,
+            'range' => $range,
+            'partners' => $partners,
+            'generatedAt' => now(),
+            'totalRetail' => $rows->sum('line_total'),
+            'totalPayable' => $rows->sum('payable_amount'),
+            'totalDue' => ConsignmentStockService::totalBalanceDue(),
+        ])->download('consignment-report.pdf');
+    }
+
+    public function consignmentCsv(Request $request): StreamedResponse
+    {
+        [$rows] = $this->filteredConsignment($request);
+
+        return $this->streamCsv(
+            'consignment-report.csv',
+            ['Sold at', 'Partner', 'Product', 'Quantity', 'Unit price', 'Line total', 'Payable'],
+            $rows->map(fn (ConsignmentSale $sale) => [
+                $sale->sold_at->format('Y-m-d H:i'),
+                $sale->partner?->name ?? '',
+                $sale->product->name,
+                number_format((float) $sale->quantity, 2),
+                number_format((float) $sale->unit_price, 2),
+                number_format((float) $sale->line_total, 2),
+                number_format((float) $sale->payable_amount, 2),
+            ])
+        );
+    }
+
+    /**
+     * @return array{0: Collection<int, ConsignmentSale>, 1: array{from: ?Carbon, to: ?Carbon, partner_id: ?int}, 2: Collection<int, array<string, mixed>>}
+     */
+    private function filteredConsignment(Request $request): array
+    {
+        $validated = $request->validate([
+            'partner_id' => ['nullable', 'exists:consignment_partners,id'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+        ]);
+
+        $from = isset($validated['date_from']) ? Carbon::parse($validated['date_from'])->startOfDay() : null;
+        $to = isset($validated['date_to']) ? Carbon::parse($validated['date_to'])->endOfDay() : null;
+        $partnerId = isset($validated['partner_id']) ? (int) $validated['partner_id'] : null;
+
+        $rows = ConsignmentSale::with(['partner', 'product'])
+            ->when($partnerId, fn ($query) => $query->where('partner_id', $partnerId))
+            ->when($from, fn ($query) => $query->where('sold_at', '>=', $from))
+            ->when($to, fn ($query) => $query->where('sold_at', '<=', $to))
+            ->latest('sold_at')
+            ->get();
+
+        $partners = ConsignmentPartner::orderBy('name')->get()->map(fn (ConsignmentPartner $partner) => [
+            'name' => $partner->name,
+            'soldPayable' => (float) $partner->sales()->sum('payable_amount'),
+            'adjustments' => (float) $partner->adjustments()->sum('value'),
+            'settled' => (float) $partner->settlements()->sum('amount'),
+            'balanceDue' => ConsignmentStockService::balanceDue($partner),
+            'onHandValue' => ConsignmentStockService::onHandValue($partner),
+        ]);
+
+        return [$rows, ['from' => $from, 'to' => $to, 'partner_id' => $partnerId], $partners];
+    }
+
+    /**
+     * @return array{0: Collection<int, PurchaseOrder>, 1: array{from: ?Carbon, to: ?Carbon, supplier_id: ?int}}
+     */
+    private function filteredPurchaseOrders(Request $request): array
+    {
+        $validated = $request->validate([
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+            'supplier_id' => ['nullable', 'exists:suppliers,id'],
+        ]);
+
+        $from = isset($validated['date_from']) ? Carbon::parse($validated['date_from'])->startOfDay() : null;
+        $to = isset($validated['date_to']) ? Carbon::parse($validated['date_to'])->endOfDay() : null;
+        $supplierId = isset($validated['supplier_id']) ? (int) $validated['supplier_id'] : null;
+
+        $orders = PurchaseOrder::with(['supplier', 'items.product', 'items.unit'])
+            ->when($from, fn ($query) => $query->where('order_date', '>=', $from))
+            ->when($to, fn ($query) => $query->where('order_date', '<=', $to))
+            ->when($supplierId, fn ($query) => $query->where('supplier_id', $supplierId))
+            ->latest()
+            ->get();
+
+        return [$orders, ['from' => $from, 'to' => $to, 'supplier_id' => $supplierId]];
     }
 
     /**

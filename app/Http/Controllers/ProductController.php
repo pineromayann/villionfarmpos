@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\ConsignmentStockService;
 use App\Models\Product;
 use App\Models\Unit;
 use App\Models\UnitType;
@@ -15,9 +16,16 @@ class ProductController extends Controller
 {
     public function index(): View
     {
+        $products = Product::with(['sellingUnits', 'baseUnit'])->orderBy('name')->get();
+
+        $consignedByProduct = $products->mapWithKeys(fn (Product $product) => [
+            $product->id => ConsignmentStockService::remainingBase($product),
+        ]);
+
         return view('inventory.index', [
-            'products' => Product::with(['sellingUnits', 'baseUnit'])->orderBy('name')->get(),
+            'products' => $products,
             'unitTypes' => UnitType::with('units')->get(),
+            'consignedByProduct' => $consignedByProduct,
         ]);
     }
 

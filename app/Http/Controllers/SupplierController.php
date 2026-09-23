@@ -12,7 +12,11 @@ class SupplierController extends Controller
     public function index(): View
     {
         return view('suppliers.index', [
-            'suppliers' => Supplier::withCount('stockMovements')->orderBy('name')->get(),
+            'suppliers' => Supplier::withCount('stockMovements')
+                ->withCount('purchaseOrders')
+                ->withSum(['purchaseOrders as purchase_orders_total' => fn ($query) => $query->whereNot('status', 'cancelled')], 'total')
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 

@@ -2,8 +2,10 @@
 
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\PurchaseOrder;
 use App\Models\Sale;
 use App\Models\StockMovement;
+use App\Models\Supplier;
 use App\Models\User;
 
 beforeEach(function () {
@@ -17,6 +19,7 @@ test('the reports index page loads', function () {
     $response->assertSee('Sales report');
     $response->assertSee('Inventory report');
     $response->assertSee('Customers report');
+    $response->assertSee('Purchases report');
 });
 
 test('the sales pdf report can be exported', function () {
@@ -168,4 +171,37 @@ test('the stock movements csv report can be filtered by category', function () {
     $response->assertOk();
     expect($response->streamedContent())->toContain('Herb Thing');
     expect($response->streamedContent())->not->toContain('Foliar Thing');
+});
+
+test('the purchases pdf and csv reports can be exported', function () {
+    $supplier = Supplier::factory()->create(['name' => 'FarmChem Distributors']);
+    PurchaseOrder::factory()->received()->create([
+        'supplier_id' => $supplier->id,
+        'total' => 150,
+        'order_date' => now(),
+    ]);
+
+    $pdf = $this->get(route('reports.purchases.pdf'));
+    $pdf->assertOk();
+    $pdf->assertHeader('content-type', 'application/pdf');
+
+    $csv = $this->get(route('reports.purchases.csv'));
+    $csv->assertOk();
+    $csv->assertHeader('content-type', 'text/csv; charset=UTF-8');
+    $content = $csv->streamedContent();
+    expect($content)->toContain('FarmChem Distributors');
+    expect($content)->toContain('150.00');
+});
+
+test('the purchases csv report can be filtered by supplier', function () {
+    $first = Supplier::factory()->create();
+    $second = Supplier::factory()->create();
+    PurchaseOrder::factory()->create(['supplier_id' => $first->id, 'total' => 100, 'order_date' => now()]);
+    PurchaseOrder::factory()->create(['supplier_id' => $second->id, 'total' => 200, 'order_date' => now()]);
+
+    $response = $this->get(route('reports.purchases.csv', ['supplier_id' => $first->id]));
+
+    $response->assertOk();
+    expect($response->streamedContent())->toContain('100.00');
+    expect($response->streamedContent())->not->toContain('200.00');
 });

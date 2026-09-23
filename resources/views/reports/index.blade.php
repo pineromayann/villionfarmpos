@@ -2,7 +2,7 @@
 
 @section('title', 'Reports')
 @section('heading', 'Reports')
-@section('subheading', 'Generate PDF and CSV exports from your sales, inventory, stock movements and customer data.')
+@section('subheading', 'Generate PDF and CSV exports from your sales, inventory, stock movements, purchases and customer data.')
 
 @section('content')
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -120,6 +120,80 @@
                         Export PDF
                     </button>
                     <button type="submit" formaction="{{ route('reports.stock.csv') }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Export CSV
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-5">
+            <div class="flex items-center gap-2">
+                <x-icon name="cart" class="h-5 w-5 text-gray-400" />
+                <h2 class="font-semibold text-gray-900">Purchases report</h2>
+            </div>
+            <p class="mt-1 text-sm text-gray-500">Purchase orders by supplier and order date.</p>
+
+            <form method="GET" class="mt-4 space-y-3">
+                <div>
+                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="purchase_supplier">Supplier</label>
+                    <select name="supplier_id" id="purchase_supplier" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                        <option value="">All suppliers</option>
+                        @foreach ($suppliers as $supplier)
+                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="purchase_from">From</label>
+                    <input type="date" name="date_from" id="purchase_from" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="purchase_to">To</label>
+                    <input type="date" name="date_to" id="purchase_to" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <button type="submit" formaction="{{ route('reports.purchases.pdf') }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
+                        Export PDF
+                    </button>
+                    <button type="submit" formaction="{{ route('reports.purchases.csv') }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Export CSV
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-5">
+            <div class="flex items-center gap-2">
+                <x-icon name="settlement" class="h-5 w-5 text-gray-400" />
+                <h2 class="font-semibold text-gray-900">Consignment report</h2>
+            </div>
+            <p class="mt-1 text-sm text-gray-500">Consigned goods sold per partner, payable amounts and settlements.</p>
+
+            <form method="GET" class="mt-4 space-y-3">
+                <div>
+                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="consignment_partner">Partner</label>
+                    <select name="partner_id" id="consignment_partner" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                        <option value="">All partners</option>
+                        @foreach ($consignmentPartners as $partner)
+                            <option value="{{ $partner->id }}">{{ $partner->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="consignment_from">From</label>
+                    <input type="date" name="date_from" id="consignment_from" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="consignment_to">To</label>
+                    <input type="date" name="date_to" id="consignment_to" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <button type="submit" formaction="{{ route('reports.consignment.pdf') }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
+                        Export PDF
+                    </button>
+                    <button type="submit" formaction="{{ route('reports.consignment.csv') }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                         Export CSV
                     </button>
                 </div>

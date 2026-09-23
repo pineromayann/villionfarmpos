@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use App\Models\User;
 
@@ -53,4 +54,17 @@ test('a supplier can be deleted', function () {
 
     $response->assertRedirect();
     $this->assertDatabaseMissing('suppliers', ['id' => $supplier->id]);
+});
+
+test('a supplier card shows purchase order count and value', function () {
+    $supplier = Supplier::factory()->create();
+    PurchaseOrder::factory()->count(2)->create(['supplier_id' => $supplier->id, 'total' => 100]);
+    PurchaseOrder::factory()->cancelled()->create(['supplier_id' => $supplier->id, 'total' => 500]);
+
+    $response = $this->get(route('suppliers.index'));
+
+    $response->assertOk();
+    $response->assertSee('Purchase orders');
+    $response->assertSee('200.00');
+    $response->assertDontSee('700.00');
 });

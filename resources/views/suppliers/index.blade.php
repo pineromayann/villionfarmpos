@@ -91,6 +91,18 @@
                     <span class="font-semibold text-gray-900">{{ $supplier->stock_movements_count }}</span>
                 </div>
 
+                <div class="mt-2 flex items-center justify-between text-sm">
+                    <span class="text-gray-500">Purchase orders</span>
+                    <span class="font-semibold text-gray-900">{{ $supplier->purchase_orders_count }}</span>
+                </div>
+
+                <div class="mt-2 flex items-center justify-between text-sm">
+                    <span class="text-gray-500">Order value</span>
+                    <span class="font-semibold text-gray-900">
+                        ₱{{ number_format($supplier->purchase_orders_total ?? 0, 2) }}
+                    </span>
+                </div>
+
                 <template x-teleport="body">
                     <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
                         <div @click.outside="open = false" class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">

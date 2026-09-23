@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\ConsignmentStockService;
+use App\Models\ConsignmentItem;
+use App\Models\ConsignmentPartner;
+use App\Models\ConsignmentSale;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductUnit;
@@ -16,9 +20,40 @@ class PosController extends Controller
 {
     public function index(): View
     {
+        $consignedByProduct = [];
+
+        foreach (ConsignmentPartner::orderBy('name')->get() as $partner) {
+            $productIds = ConsignmentItem::whereHas(
+                'consignment',
+                fn ($query) => $query->where('partner_id', $partner->id)
+            )->distinct()->pluck('product_id');
+
+            foreach ($productIds as $productId) {
+                $product = Product::find($productId);
+
+                if ($product === null) {
+                    continue;
+                }
+
+                $remaining = ConsignmentStockService::remainingBase($product, $partner);
+
+                if ($remaining <= 0) {
+                    continue;
+                }
+
+                $consignedByProduct[$productId][] = [
+                    'id' => $partner->id,
+                    'name' => $partner->name,
+                    'remaining' => $remaining,
+                    'unit' => $product->unit,
+                ];
+            }
+        }
+
         return view('pos.index', [
             'products' => Product::with(['sellingUnits', 'baseUnit'])->orderBy('name')->get(),
             'customers' => Customer::orderBy('name')->get(),
+            'consignedByProduct' => $consignedByProduct,
         ]);
     }
 
@@ -38,6 +73,7 @@ class PosController extends Controller
             'cart.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'cart.*.unit_id' => ['nullable', 'integer', 'exists:units,id'],
             'cart.*.qty' => ['required', 'numeric', 'min:0.01'],
+            'cart.*.partner_id' => ['nullable', 'integer', 'exists:consignment_partners,id'],
         ]);
         $cartValidator->validate();
 
@@ -51,8 +87,16 @@ class PosController extends Controller
                 $productUnit = $this->sellingUnit($product, $line['unit_id'] ?? null);
                 $baseQty = (float) $line['qty'] * (float) $productUnit->conversion_to_base;
 
-                if ($baseQty > (float) $product->stock) {
-                    abort(422, "Not enough stock for {$product->name}.");
+                $partner = isset($line['partner_id']) && $line['partner_id'] !== '' && $line['partner_id'] !== null
+                    ? ConsignmentPartner::findOrFail((int) $line['partner_id'])
+                    : null;
+
+                if ($partner === null) {
+                    if ($baseQty > (float) $product->stock) {
+                        abort(422, "Not enough stock for {$product->name}.");
+                    }
+                } elseif ($baseQty > ConsignmentStockService::remainingBase($product, $partner)) {
+                    abort(422, "Not enough consigned stock of {$product->name} from {$partner->name}.");
                 }
 
                 $lineTotal = $product->salePrice() * $baseQty;
@@ -64,6 +108,10 @@ class PosController extends Controller
                     'unit_id' => $productUnit->unit_id,
                     'unit_price' => $product->salePrice(),
                     'line_total' => $lineTotal,
+                    'partner' => $partner,
+                    'unit_cost' => $partner !== null
+                        ? ConsignmentStockService::averageCostPerBase($product, $partner)
+                        : null,
                 ];
             }
 
@@ -86,6 +134,27 @@ class PosController extends Controller
                     'unit_price' => $line['unit_price'],
                     'line_total' => $line['line_total'],
                 ]);
+
+                if ($line['partner'] !== null) {
+                    $payable = (float) $line['unit_cost'] * $line['quantity'];
+
+                    ConsignmentSale::create([
+                        'partner_id' => $line['partner']->id,
+                        'sale_id' => $sale->id,
+                        'customer_id' => $validated['customer_id'] ?? null,
+                        'product_id' => $line['product']->id,
+                        'quantity' => $line['quantity'],
+                        'unit_id' => $line['unit_id'],
+                        'unit_price' => $line['unit_price'],
+                        'line_total' => $line['line_total'],
+                        'unit_cost' => $line['unit_cost'],
+                        'payable_amount' => $payable,
+                        'sold_at' => now(),
+                        'created_by' => auth()->id(),
+                    ]);
+
+                    continue;
+                }
 
                 $line['product']->decrement('stock', $line['quantity']);
 

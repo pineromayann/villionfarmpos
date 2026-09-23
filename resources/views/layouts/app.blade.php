@@ -39,10 +39,20 @@
                         ['route' => 'inventory.index', 'icon' => 'inventory', 'label' => 'Inventory'],
                         ['route' => 'sales.index', 'icon' => 'sales', 'label' => 'Sales'],
                         ['route' => 'stock.movements.index', 'icon' => 'stock', 'label' => 'Stock'],
+                        ['route' => 'procurement.index', 'icon' => 'cart', 'label' => 'Procurement'],
                         ['route' => 'suppliers.index', 'icon' => 'suppliers', 'label' => 'Suppliers'],
                         ['route' => 'refunds.index', 'icon' => 'refunds', 'label' => 'Refunds'],
                         ['route' => 'customers.index', 'icon' => 'customers', 'label' => 'Customers'],
                         ['route' => 'reports.index', 'icon' => 'report', 'label' => 'Reports'],
+                    ];
+
+                    $consignmentItems = [
+                        ['route' => 'consignment-partners.index', 'pattern' => 'consignment-partners*', 'icon' => 'partners', 'label' => 'Consignment Partners'],
+                        ['route' => 'consignment.receive', 'pattern' => 'consignment.receive*', 'icon' => 'receive', 'label' => 'Receive Consignment'],
+                        ['route' => 'consignment.stock', 'pattern' => 'consignment.stock*', 'icon' => 'consignment-stock', 'label' => 'Consignment Stock'],
+                        ['route' => 'consignment.sales', 'pattern' => 'consignment.sales*', 'icon' => 'consignment-sales', 'label' => 'Consignment Sales'],
+                        ['route' => 'consignment.settlement', 'pattern' => 'consignment.settlement*', 'icon' => 'settlement', 'label' => 'Settlement'],
+                        ['route' => 'consignment.history', 'pattern' => 'consignment.history*', 'icon' => 'history', 'label' => 'Consignment History'],
                     ];
                 @endphp
 
@@ -52,6 +62,22 @@
                             <a
                                 href="{{ route($item['route']) }}"
                                 class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm {{ request()->routeIs($item['route']) ? 'bg-gray-100 font-medium text-gray-900' : 'text-gray-600 hover:bg-gray-50' }}"
+                            >
+                                <x-icon :name="$item['icon']" class="h-[18px] w-[18px]" />
+                                {{ $item['label'] }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+
+                <p class="mt-5 px-2 pb-2 text-xs font-medium uppercase tracking-wide text-gray-400">Consignment</p>
+
+                <ul class="space-y-0.5">
+                    @foreach ($consignmentItems as $item)
+                        <li>
+                            <a
+                                href="{{ route($item['route']) }}"
+                                class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm {{ request()->routeIs($item['pattern']) ? 'bg-gray-100 font-medium text-gray-900' : 'text-gray-600 hover:bg-gray-50' }}"
                             >
                                 <x-icon :name="$item['icon']" class="h-[18px] w-[18px]" />
                                 {{ $item['label'] }}
