@@ -22,6 +22,15 @@
                     <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="date_to">To</label>
                     <input type="date" name="date_to" id="date_to" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
                 </div>
+                <div>
+                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="sales_category">Category</label>
+                    <select name="category" id="sales_category" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                        <option value="">All categories</option>
+                        @foreach (\App\Models\Product::CATEGORIES as $category)
+                            <option value="{{ $category }}">{{ ucfirst($category) }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <div class="flex gap-2 pt-1">
                     <button type="submit" formaction="{{ route('reports.sales.pdf') }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
@@ -41,14 +50,26 @@
             </div>
             <p class="mt-1 text-sm text-gray-500">Full stock list with batch numbers, expiry and low-stock flags.</p>
 
-            <div class="mt-4 flex gap-2">
-                <a href="{{ route('reports.inventory.pdf') }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
-                    Export PDF
-                </a>
-                <a href="{{ route('reports.inventory.csv') }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    Export CSV
-                </a>
-            </div>
+            <form method="GET" class="mt-4 space-y-3">
+                <div>
+                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="inventory_category">Category</label>
+                    <select name="category" id="inventory_category" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                        <option value="">All categories</option>
+                        @foreach (\App\Models\Product::CATEGORIES as $category)
+                            <option value="{{ $category }}">{{ ucfirst($category) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <button type="submit" formaction="{{ route('reports.inventory.pdf') }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
+                        Export PDF
+                    </button>
+                    <button type="submit" formaction="{{ route('reports.inventory.csv') }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Export CSV
+                    </button>
+                </div>
+            </form>
         </div>
 
         <div class="rounded-xl border border-gray-200 bg-white p-5">

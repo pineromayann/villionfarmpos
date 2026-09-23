@@ -12,6 +12,7 @@
             paymentMethod: 'cash',
             customerId: '',
             search: '',
+            category: 'all',
             addToCart(product) {
                 const existing = this.cart.find(i => i.id === product.id);
                 if (existing) {
@@ -33,6 +34,27 @@
         class="grid grid-cols-1 gap-6 lg:grid-cols-3"
     >
         <div class="lg:col-span-2">
+            <div class="mb-4 flex flex-wrap gap-2">
+                <button
+                    type="button"
+                    @click="category = 'all'"
+                    :class="category === 'all' ? 'bg-gray-900 text-white' : 'border border-gray-200 bg-white text-gray-700 hover:border-gray-300'"
+                    class="rounded-full px-4 py-1.5 text-sm font-medium"
+                >
+                    All
+                </button>
+                @foreach (\App\Models\Product::CATEGORIES as $category)
+                    <button
+                        type="button"
+                        @click="category = '{{ $category }}'"
+                        :class="category === '{{ $category }}' ? 'bg-gray-900 text-white' : 'border border-gray-200 bg-white text-gray-700 hover:border-gray-300'"
+                        class="rounded-full px-4 py-1.5 text-sm font-medium"
+                    >
+                        {{ ucfirst($category) }}
+                    </button>
+                @endforeach
+            </div>
+
             <div class="mb-4 flex justify-end">
                 <div class="relative w-full max-w-xs">
                     <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -49,8 +71,8 @@
                 @foreach ($products as $product)
                     <button
                         type="button"
-                        x-show="!search || {{ Illuminate\Support\Js::from(Str::lower($product->name.' '.$product->active_ingredient)) }}.includes(search.toLowerCase())"
-                        @click="addToCart({{ Illuminate\Support\Js::from(['id' => $product->id, 'name' => $product->name, 'price' => (float) $product->price, 'unit' => $product->unit, 'stock' => (float) $product->stock]) }})"
+                        x-show="(category === 'all' || category === {{ Illuminate\Support\Js::from($product->category ?? null) }}) && (!search || {{ Illuminate\Support\Js::from(Str::lower($product->name.' '.$product->category.' '.$product->active_ingredient)) }}.includes(search.toLowerCase()))"
+                        @click="addToCart({{ Illuminate\Support\Js::from(['id' => $product->id, 'name' => $product->name, 'price' => $product->salePrice(), 'unit' => $product->unit, 'stock' => (float) $product->stock]) }})"
                         class="rounded-xl border border-gray-200 bg-white p-4 text-left hover:border-gray-300 hover:shadow-sm"
                     >
                         <div class="flex items-start justify-between">
@@ -59,8 +81,8 @@
                         </div>
                         <p class="mt-0.5 text-xs text-sky-600">{{ $product->active_ingredient }}</p>
                         <div class="mt-3 flex items-center justify-between text-sm">
-                            <span class="font-semibold text-gray-900">₱{{ number_format($product->price, 2) }}</span>
-                            <span class="text-gray-400">exp {{ $product->expiry_date?->format('n/j/Y') }}</span>
+                            <span class="font-semibold text-gray-900">₱{{ number_format($product->salePrice(), 2) }}</span>
+                            <span class="text-xs uppercase tracking-wide text-gray-400">{{ $product->category ?? 'uncategorized' }}</span>
                         </div>
                     </button>
                 @endforeach

@@ -48,27 +48,32 @@ class ReportController extends Controller
         );
     }
 
-    public function inventoryPdf(): Response
+    public function inventoryPdf(Request $request): Response
     {
+        $category = $this->categoryFrom($request);
+
         return Pdf::loadView('reports.pdf.inventory', [
-            'products' => Product::orderBy('name')->get(),
+            'products' => $this->filteredProducts($category),
+            'category' => $category,
             'generatedAt' => now(),
         ])->download('inventory-report.pdf');
     }
 
-    public function inventoryCsv(): StreamedResponse
+    public function inventoryCsv(Request $request): StreamedResponse
     {
-        $products = Product::orderBy('name')->get();
+        $category = $this->categoryFrom($request);
+        $products = $this->filteredProducts($category);
 
         return $this->streamCsv(
             'inventory-report.csv',
-            ['Product', 'Active ingredient', 'Batch', 'Expiry date', 'Price', 'Stock', 'Unit', 'Low stock', 'Expiring soon'],
+            ['Product', 'Category', 'Active ingredient', 'Batch', 'Expiry date', 'Price', 'Stock', 'Unit', 'Low stock', 'Expiring soon'],
             $products->map(fn (Product $product) => [
                 $product->name,
+                $product->category ?? '',
                 $product->active_ingredient,
                 $product->batch_number,
                 $product->expiry_date?->format('Y-m-d'),
-                number_format((float) $product->price, 2),
+                number_format($product->salePrice(), 2),
                 $product->stock,
                 $product->unit,
                 $product->isLowStock() ? 'Yes' : 'No',
@@ -105,31 +110,35 @@ class ReportController extends Controller
     }
 
     /**
-     * @return array{0: Collection<int, Sale>, 1: array{from: ?Carbon, to: ?Carbon}}
+     * @return array{0: Collection<int, Sale>, 1: array{from: ?Carbon, to: ?Carbon, category: ?string}}
      */
     private function filteredSales(Request $request): array
     {
         $validated = $request->validate([
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date'],
+            'category' => ['nullable', 'in:'.implode(',', Product::CATEGORIES)],
         ]);
 
         $from = isset($validated['date_from']) ? Carbon::parse($validated['date_from'])->startOfDay() : null;
         $to = isset($validated['date_to']) ? Carbon::parse($validated['date_to'])->endOfDay() : null;
+        $category = $validated['category'] ?? null;
 
         $sales = Sale::with(['customer', 'items.product'])
             ->when($from, fn ($query) => $query->where('created_at', '>=', $from))
             ->when($to, fn ($query) => $query->where('created_at', '<=', $to))
+            ->when($category, fn ($query) => $query->whereHas(
+                'items.product',
+                fn ($query) => $query->where('category', $category)
+            ))
             ->latest()
             ->get();
 
-        return [$sales, ['from' => $from, 'to' => $to]];
+        return [$sales, ['from' => $from, 'to' => $to, 'category' => $category]];
     }
 
     /**
-     * @param  Collection<int, Sale>  $sales
-     * @param  array{from: ?Carbon, to: ?Carbon}  $range
-     * @return array<string, mixed>
+     * @param  array{from: ?Carbon, to: ?Carbon, category: ?string}  $range
      */
     private function salesReportData(Collection $sales, array $range): array
     {
@@ -156,6 +165,23 @@ class ReportController extends Controller
             'itemsSold' => $sales->flatMap->items->sum('quantity'),
             'topProducts' => $topProducts,
         ];
+    }
+
+    private function categoryFrom(Request $request): ?string
+    {
+        return $request->validate([
+            'category' => ['nullable', 'in:'.implode(',', Product::CATEGORIES)],
+        ])['category'] ?? null;
+    }
+
+    /**
+     * @return Collection<int, Product>
+     */
+    private function filteredProducts(?string $category): Collection
+    {
+        return Product::when($category, fn ($query) => $query->byCategory($category))
+            ->orderBy('name')
+            ->get();
     }
 
     /**

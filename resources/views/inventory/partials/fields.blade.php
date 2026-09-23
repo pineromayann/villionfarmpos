@@ -6,10 +6,23 @@
         class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
 </div>
 
-<div>
-    <label class="block text-sm font-medium text-gray-700">Active ingredient</label>
-    <input type="text" name="active_ingredient" value="{{ old('active_ingredient', $product?->active_ingredient) }}"
-        class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+<div class="grid grid-cols-2 gap-4">
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Category</label>
+        <select name="category" required
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+            @foreach (\App\Models\Product::CATEGORIES as $category)
+                <option value="{{ $category }}" @selected(old('category', $product?->category) === $category)>
+                    {{ ucfirst($category) }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Active ingredient</label>
+        <input type="text" name="active_ingredient" value="{{ old('active_ingredient', $product?->active_ingredient) }}"
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+    </div>
 </div>
 
 <div class="grid grid-cols-2 gap-4">
@@ -27,8 +40,26 @@
 
 <div class="grid grid-cols-3 gap-4">
     <div>
-        <label class="block text-sm font-medium text-gray-700">Price</label>
-        <input type="number" step="0.01" min="0" name="price" value="{{ old('price', $product?->price) }}" required
+        <label class="block text-sm font-medium text-gray-700">Cost price</label>
+        <input type="number" step="0.01" min="0" name="cost_price" value="{{ old('cost_price', $product?->cost_price) }}"
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Dealer price (COD)</label>
+        <input type="number" step="0.01" min="0" name="dealers_price_cod" value="{{ old('dealers_price_cod', $product?->dealers_price_cod) }}"
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Dealer price (30 days)</label>
+        <input type="number" step="0.01" min="0" name="terms_30_days" value="{{ old('terms_30_days', $product?->terms_30_days) }}"
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+    </div>
+</div>
+
+<div class="grid grid-cols-3 gap-4">
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Selling price</label>
+        <input type="number" step="0.01" min="0" name="price" value="{{ old('price', $product?->price) }}"
             class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
     </div>
     <div>
@@ -41,4 +72,9 @@
         <input type="text" name="unit" value="{{ old('unit', $product?->unit ?? 'L') }}" required
             class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
     </div>
+</div>
+
+<div>
+    <label class="block text-sm font-medium text-gray-700">Note</label>
+    <textarea name="note" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">{{ old('note', $product?->note) }}</textarea>
 </div>

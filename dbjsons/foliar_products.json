@@ -1,0 +1,109 @@
+{
+  "category": "foliar",
+  "products": [
+    {
+      "product_name": "CROPGIANT (O)",
+      "cost_price": 260,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "CROPGIANT (Y)",
+      "cost_price": 260,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "FERTI-K",
+      "cost_price": 320,
+      "dealers_price_cod": 340,
+      "terms_30_days": 350,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "GREEN BEE (O)",
+      "cost_price": 180,
+      "dealers_price_cod": 200,
+      "terms_30_days": 210,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "GREEN BEE (G)",
+      "cost_price": 180,
+      "dealers_price_cod": 200,
+      "terms_30_days": 210,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "HYFER (O)",
+      "cost_price": 270,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "HYFER (G)",
+      "cost_price": 270,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MRJ",
+      "cost_price": 130,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MALAGO",
+      "cost_price": 168,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "NUTRI N PLUS",
+      "cost_price": 800,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "ZINC METALATE",
+      "cost_price": 350,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "YUREA PLUS Liter",
+      "cost_price": 191,
+      "dealers_price_cod": 220,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "LUMINA",
+      "cost_price": 420,
+      "dealers_price_cod": 440,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    }
+  ]
+}

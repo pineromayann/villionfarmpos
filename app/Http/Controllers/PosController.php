@@ -50,13 +50,13 @@ class PosController extends Controller
                     abort(422, "Not enough stock for {$product->name}.");
                 }
 
-                $lineTotal = $product->price * $line['qty'];
+                $lineTotal = $product->salePrice() * $line['qty'];
                 $subtotal += $lineTotal;
 
                 $lines[] = [
                     'product' => $product,
                     'quantity' => $line['qty'],
-                    'unit_price' => $product->price,
+                    'unit_price' => $product->salePrice(),
                     'line_total' => $lineTotal,
                 ];
             }

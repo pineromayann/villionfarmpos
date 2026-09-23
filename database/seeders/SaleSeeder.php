@@ -17,18 +17,18 @@ class SaleSeeder extends Seeder
         $productId = fn (string $name) => Product::where('name', $name)->value('id');
 
         $this->recordSale([
-            [$productId('Actellic 50 EC'), 1],
+            [$productId('KARATE 500ml'), 1],
         ], now()->subMinutes(30));
 
         $this->recordSale([
-            [$productId('Confidor 200 SL'), 2],
-            [$productId('Belt 480 SC'), 1],
-            [$productId('Karate 2.5 WG'), 2],
+            [$productId('MAGNUM Liter'), 2],
+            [$productId('BAYLUSCIDE WP'), 1],
+            [$productId('FERTI-K'), 2],
         ], now()->subMinutes(15));
 
         $this->recordSale([
-            [$productId('Actellic 50 EC'), 3],
-            [$productId('Karate 2.5 WG'), 2],
+            [$productId('KARATE 500ml'), 3],
+            [$productId('AGROXONE Liter'), 2],
         ], now()->subMinutes(5));
     }
 
@@ -42,13 +42,13 @@ class SaleSeeder extends Seeder
 
         foreach ($lines as [$productId, $quantity]) {
             $product = Product::findOrFail($productId);
-            $lineTotal = $product->price * $quantity;
+            $lineTotal = $product->salePrice() * $quantity;
             $subtotal += $lineTotal;
 
             $lineData[] = [
                 'product_id' => $productId,
                 'quantity' => $quantity,
-                'unit_price' => $product->price,
+                'unit_price' => $product->salePrice(),
                 'line_total' => $lineTotal,
             ];
         }

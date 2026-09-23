@@ -46,14 +46,26 @@ class ProductController extends Controller
      */
     private function validated(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'in:'.implode(',', Product::CATEGORIES)],
             'active_ingredient' => ['nullable', 'string', 'max:255'],
             'batch_number' => ['nullable', 'string', 'max:255'],
             'expiry_date' => ['nullable', 'date'],
-            'price' => ['required', 'numeric', 'min:0'],
+            'price' => ['nullable', 'numeric', 'min:0'],
+            'cost_price' => ['nullable', 'numeric', 'min:0'],
+            'dealers_price_cod' => ['nullable', 'numeric', 'min:0'],
+            'terms_30_days' => ['nullable', 'numeric', 'min:0'],
             'stock' => ['required', 'numeric', 'min:0'],
             'unit' => ['required', 'string', 'max:10'],
+            'note' => ['nullable', 'string', 'max:1000'],
         ]);
+
+        $validated['price'] = $validated['price']
+            ?? $validated['dealers_price_cod']
+            ?? $validated['terms_30_days']
+            ?? $validated['cost_price'];
+
+        return $validated;
     }
 }

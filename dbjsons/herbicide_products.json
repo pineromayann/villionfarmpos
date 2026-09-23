@@ -1,0 +1,611 @@
+{
+  "category": "herbicide",
+  "products": [
+    {
+      "product_name": "AGROXONE Liter",
+      "cost_price": "485/425",
+      "dealers_price_cod": 505,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null,
+      "note": "two handwritten cost values, please verify: '485' and '425'"
+    },
+    {
+      "product_name": "AGROXONE 500ml",
+      "cost_price": 250,
+      "dealers_price_cod": 270,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "AGROXONE 250ml",
+      "cost_price": 120,
+      "dealers_price_cod": 140,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "ACCEPT Liter",
+      "cost_price": 900,
+      "dealers_price_cod": 920,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "ATRAZINE",
+      "cost_price": 480,
+      "dealers_price_cod": 500,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "ALMIX",
+      "cost_price": 400,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "BISPYTON Liter",
+      "cost_price": "1015/1054",
+      "dealers_price_cod": 1100,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null,
+      "note": "two handwritten cost values, please verify: '1015' and '1054'"
+    },
+    {
+      "product_name": "BISPYTON 500ml",
+      "cost_price": 668,
+      "dealers_price_cod": 690,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "BASAGRAN Liter",
+      "cost_price": 900,
+      "dealers_price_cod": 920,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "BASAGRAN 500ml",
+      "cost_price": 500,
+      "dealers_price_cod": 520,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "BASTA",
+      "cost_price": 970,
+      "dealers_price_cod": 990,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "BURADO Liter",
+      "cost_price": 550,
+      "dealers_price_cod": 570,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "BURADO 500ml",
+      "cost_price": null,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "BRIDGE",
+      "cost_price": 600,
+      "dealers_price_cod": 620,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "CLEARMORE 2Liters",
+      "cost_price": 1460,
+      "dealers_price_cod": 1500,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "CLEARMORE Liter",
+      "cost_price": 780,
+      "dealers_price_cod": 820,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "CLEARCUT GAL",
+      "cost_price": 950,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "CLEAROUT GAL",
+      "cost_price": 937,
+      "dealers_price_cod": 960,
+      "terms_30_days": 970,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "CLEAROUT Liter",
+      "cost_price": 300,
+      "dealers_price_cod": 320,
+      "terms_30_days": 330,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "DURON",
+      "cost_price": 570,
+      "dealers_price_cod": 600,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "DOMINATE Big",
+      "cost_price": 800,
+      "dealers_price_cod": 850,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "DOMINATE Small",
+      "cost_price": 400,
+      "dealers_price_cod": 450,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "ERASER Liter",
+      "cost_price": 550,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "FRONTIER Liter",
+      "cost_price": 1320,
+      "dealers_price_cod": 1380,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "FRONTIER 100ml",
+      "cost_price": 190,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "FERRARI Liter",
+      "cost_price": 1100,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "FERRARI 500ml",
+      "cost_price": 580,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "GLYPOTON GAL",
+      "cost_price": 1100,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "GLYPOTON Liter",
+      "cost_price": 280,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "GENERAL Liter",
+      "cost_price": 300,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "HERBICUT GAL",
+      "cost_price": 1170,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MOWER GAL",
+      "cost_price": 1070,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MOWER Liter",
+      "cost_price": 380,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MACHETE Liter",
+      "cost_price": 670,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MACHETE 500ml",
+      "cost_price": null,
+      "dealers_price_cod": null,
+      "terms_30_days": 350,
+      "expiration_date": null,
+      "stock_available": null,
+      "note": "original cost price '300' is crossed out in the source; current cost price unclear, please verify"
+    },
+    {
+      "product_name": "NOMINEE Big",
+      "cost_price": 1500,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "NOMINEE Small",
+      "cost_price": 700,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "ONECIDE Liter",
+      "cost_price": 1130,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "ONECIDE 500ml",
+      "cost_price": "750",
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null,
+      "note": "cost price '750' crossed out with an unclear handwritten red annotation next to it, please verify current price"
+    },
+    {
+      "product_name": "POSTMASTER Liter",
+      "cost_price": 1830,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "POSTMASTER 500ml",
+      "cost_price": null,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PRONTO Liter",
+      "cost_price": 1150,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PRADO Liter",
+      "cost_price": 1050,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PRADO 500ml",
+      "cost_price": 650,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PMAX Gal",
+      "cost_price": 750,
+      "dealers_price_cod": 800,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PMAX Liter",
+      "cost_price": 263,
+      "dealers_price_cod": 300,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PRO RICE Liter",
+      "cost_price": null,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null,
+      "note": "cost price is handwritten and illegible, please check original document"
+    },
+    {
+      "product_name": "PRO RICE 500ml",
+      "cost_price": null,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "POSTHERB BIG",
+      "cost_price": 950,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "POSTHERB Small",
+      "cost_price": 490,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PYRA Liter",
+      "cost_price": 1180,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PYRA 500ml",
+      "cost_price": 650,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PYANCHOR Liter",
+      "cost_price": 1250,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PYANCHOR 500ml",
+      "cost_price": 650,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "QUADRO 8 Big",
+      "cost_price": 850,
+      "dealers_price_cod": 880,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "QUADRO 8 Small",
+      "cost_price": 500,
+      "dealers_price_cod": 530,
+      "terms_30_days": 550,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "RICE CARE",
+      "cost_price": 830,
+      "dealers_price_cod": 850,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "SPITFIRE Gal",
+      "cost_price": 750,
+      "dealers_price_cod": 800,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "SPITFIRE Liter",
+      "cost_price": 290,
+      "dealers_price_cod": 310,
+      "terms_30_days": 320,
+      "expiration_date": null,
+      "stock_available": null,
+      "note": "written as 'SPITRIRE Liter' in source, likely a spelling slip for SPITFIRE Liter"
+    },
+    {
+      "product_name": "SOFIT Liter",
+      "cost_price": 970,
+      "dealers_price_cod": 1000,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "SOFIT 500ml",
+      "cost_price": 520,
+      "dealers_price_cod": 530,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "STRIPPER Liter",
+      "cost_price": 500,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "STRIPPER 500ml",
+      "cost_price": 410,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "TRIPLE 8 Gal",
+      "cost_price": 750,
+      "dealers_price_cod": 780,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "TRIPLE 8 Liter",
+      "cost_price": 270,
+      "dealers_price_cod": 290,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "TOPSHOT Liter",
+      "cost_price": 1540,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "TOPSHOT 500ml",
+      "cost_price": 850,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "VERO Big",
+      "cost_price": 1050,
+      "dealers_price_cod": 1070,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "VERO Small",
+      "cost_price": 560,
+      "dealers_price_cod": 580,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "VIGILANTE",
+      "cost_price": 499,
+      "dealers_price_cod": 530,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "24D ESTER Liter",
+      "cost_price": 160,
+      "dealers_price_cod": 200,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "24D ESTER 500ml",
+      "cost_price": 135,
+      "dealers_price_cod": 160,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "24D ESTER 250ml",
+      "cost_price": 70,
+      "dealers_price_cod": 100,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "24D AMINE Liter",
+      "cost_price": 145,
+      "dealers_price_cod": 190,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "24D AMINE 500ml",
+      "cost_price": 110,
+      "dealers_price_cod": 130,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    }
+  ]
+}

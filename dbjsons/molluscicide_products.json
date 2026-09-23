@@ -1,0 +1,199 @@
+{
+  "category": "molluscicide",
+  "products": [
+    {
+      "product_name": "BAYLUSCIDE WP",
+      "cost_price": 920,
+      "dealers_price_cod": 950,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "BAYLUSCIDE EC",
+      "cost_price": 1170,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "CONTROL WP",
+      "cost_price": 600,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "CONTROL EC",
+      "cost_price": null,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "CRUSHER",
+      "cost_price": "390/360",
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "DYNAMITE (P)",
+      "cost_price": 187.5,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "EXPLODER (P)",
+      "cost_price": 175,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "HIT",
+      "cost_price": 720,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "LLAMADO WP",
+      "cost_price": 470,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "LLAMADO EC",
+      "cost_price": null,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "NET WP",
+      "cost_price": 600,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "NET EC",
+      "cost_price": 850,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "NICLOSANEX",
+      "cost_price": "320-252",
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null,
+      "note": "handwritten value, please verify: appears as '320 - 252'"
+    },
+    {
+      "product_name": "NICLOS-M",
+      "cost_price": 630,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PATTON",
+      "cost_price": 411,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PUTO",
+      "cost_price": 38000,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "SNAILBAIT",
+      "cost_price": 180,
+      "dealers_price_cod": 190,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "SNAILMATE",
+      "cost_price": 320,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "SINO-M",
+      "cost_price": "308-306",
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null,
+      "note": "handwritten value, please verify: appears as '308 - 306'"
+    },
+    {
+      "product_name": "SNAIL KILL",
+      "cost_price": 650,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "SNAIL BOMB",
+      "cost_price": 590,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "TAGCHEM (P)",
+      "cost_price": 550,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "TAGLUSCIDE WP",
+      "cost_price": 210,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "YURO",
+      "cost_price": 900,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    }
+  ]
+}

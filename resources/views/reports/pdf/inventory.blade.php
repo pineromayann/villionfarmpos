@@ -11,6 +11,7 @@
         <thead>
             <tr>
                 <th>Product</th>
+                <th>Category</th>
                 <th>Active ingredient</th>
                 <th>Batch</th>
                 <th>Expiry</th>
@@ -23,10 +24,11 @@
             @forelse ($products as $product)
                 <tr>
                     <td>{{ $product->name }}</td>
+                    <td>{{ ucfirst($product->category ?? '—') }}</td>
                     <td>{{ $product->active_ingredient }}</td>
                     <td>{{ $product->batch_number }}</td>
                     <td>{{ $product->expiry_date?->format('n/j/Y') }}</td>
-                    <td class="text-right">{{ number_format($product->price, 2) }}</td>
+                    <td class="text-right">{{ number_format($product->salePrice(), 2) }}</td>
                     <td class="text-right">{{ rtrim(rtrim(number_format($product->stock, 2), '0'), '.') }} {{ $product->unit }}</td>
                     <td>
                         @if ($product->isLowStock())
@@ -42,7 +44,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7">No products in inventory.</td>
+                    <td colspan="8">No products in inventory.</td>
                 </tr>
             @endforelse
         </tbody>

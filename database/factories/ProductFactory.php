@@ -19,12 +19,17 @@ class ProductFactory extends Factory
     {
         return [
             'name' => fake()->unique()->words(2, true),
+            'category' => fake()->randomElement(Product::CATEGORIES),
             'active_ingredient' => fake()->words(2, true),
             'batch_number' => strtoupper(fake()->bothify('??-####')),
             'expiry_date' => fake()->dateTimeBetween('+1 month', '+2 years'),
             'price' => fake()->randomFloat(2, 5, 50),
+            'cost_price' => fake()->randomFloat(2, 5, 50),
+            'dealers_price_cod' => fake()->randomFloat(2, 5, 50),
+            'terms_30_days' => fake()->optional()->randomFloat(2, 5, 50),
             'stock' => fake()->randomFloat(2, 0, 100),
             'unit' => fake()->randomElement(['L', 'kg']),
+            'note' => null,
         ];
     }
 

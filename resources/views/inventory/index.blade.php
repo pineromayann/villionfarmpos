@@ -2,7 +2,7 @@
 
 @section('title', 'Inventory')
 @section('heading', 'Inventory')
-@section('subheading', 'Insecticide stock, batch numbers and expiry tracking.')
+@section('subheading', 'Pesticide stock, categories, pricing tiers and expiry tracking.')
 
 @section('actions')
     <div x-data="{ open: false }" class="flex items-center gap-3">
@@ -34,8 +34,18 @@
 @endsection
 
 @section('content')
-    <div x-data="{ search: '' }">
-        <div class="mb-4 flex justify-end">
+    <div x-data="{ search: '', category: '' }">
+        <div class="mb-4 flex items-center justify-end gap-3">
+            <select
+                x-model="category"
+                class="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
+            >
+                <option value="">All categories</option>
+                @foreach (\App\Models\Product::CATEGORIES as $category)
+                    <option value="{{ $category }}">{{ ucfirst($category) }}</option>
+                @endforeach
+            </select>
+
             <div class="relative w-full max-w-xs">
                 <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
@@ -52,9 +62,11 @@
                 <thead>
                     <tr class="border-b border-gray-200 text-left text-xs font-medium uppercase tracking-wide text-gray-400">
                         <th class="px-5 py-3">Product</th>
+                        <th class="px-5 py-3">Category</th>
                         <th class="px-5 py-3">Batch</th>
                         <th class="px-5 py-3">Expiry</th>
-                        <th class="px-5 py-3">Price</th>
+                        <th class="px-5 py-3">Cost</th>
+                        <th class="px-5 py-3">Dealer price</th>
                         <th class="px-5 py-3">Stock</th>
                         <th class="px-5 py-3"></th>
                     </tr>
@@ -63,11 +75,17 @@
                     @forelse ($products as $product)
                         <tr
                             x-data="{ open: false }"
-                            x-show="!search || {{ Illuminate\Support\Js::from(Str::lower($product->name.' '.$product->active_ingredient)) }}.includes(search.toLowerCase())"
+                            x-show="(!search || {{ Illuminate\Support\Js::from(Str::lower($product->name.' '.$product->category.' '.$product->active_ingredient)) }}.includes(search.toLowerCase())) && (category === '' || category === {{ Illuminate\Support\Js::from($product->category ?? null) }})"
                         >
                             <td class="px-5 py-4">
                                 <p class="font-semibold text-gray-900">{{ $product->name }}</p>
                                 <p class="text-xs text-sky-600">{{ $product->active_ingredient }}</p>
+                                @if ($product->note)
+                                    <p class="mt-0.5 text-xs text-amber-600">{{ $product->note }}</p>
+                                @endif
+                            </td>
+                            <td class="px-5 py-4">
+                                <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{{ ucfirst($product->category ?? '—') }}</span>
                             </td>
                             <td class="px-5 py-4 text-sky-600">{{ $product->batch_number }}</td>
                             <td class="px-5 py-4">
@@ -76,7 +94,15 @@
                                     <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">soon</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-4 text-gray-700">₱{{ number_format($product->price, 2) }}</td>
+                            <td class="px-5 py-4 text-gray-700">{{ $product->cost_price !== null ? '₱'.number_format($product->cost_price, 2) : '—' }}</td>
+                            <td class="px-5 py-4 text-gray-700">
+                                <p>₱{{ number_format($product->salePrice(), 2) }}</p>
+                                @if ($product->dealers_price_cod !== null || $product->terms_30_days !== null)
+                                    <p class="text-xs text-gray-400">
+                                        COD ₱{{ number_format($product->dealers_price_cod ?? 0, 2) }} &middot; 30d ₱{{ number_format($product->terms_30_days ?? 0, 2) }}
+                                    </p>
+                                @endif
+                            </td>
                             <td class="px-5 py-4 {{ $product->isLowStock() ? 'font-medium text-red-600' : 'text-gray-700' }}">
                                 {{ rtrim(rtrim(number_format($product->stock, 2), '0'), '.') }} {{ $product->unit }}
                             </td>
@@ -120,7 +146,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-8 text-center text-gray-500">No products in inventory yet.</td>
+                            <td colspan="8" class="px-5 py-8 text-center text-gray-500">No products in inventory yet.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -1,0 +1,232 @@
+{
+  "category": "insecticide",
+  "products": [
+    {
+      "product_name": "KARATE 500ml",
+      "cost_price": 360,
+      "dealers_price_cod": 380,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "KRISS Liter",
+      "cost_price": 570,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "KRISS 500ml",
+      "cost_price": 320,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "KUDOS",
+      "cost_price": 460,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "KING ARTHUR",
+      "cost_price": 450,
+      "dealers_price_cod": 470,
+      "terms_30_days": 480,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "LANNATE 25g",
+      "cost_price": 470,
+      "dealers_price_cod": 550,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null,
+      "note": "original cost price '450' is crossed out and replaced with a handwritten '470', please verify"
+    },
+    {
+      "product_name": "LANNATE 425G",
+      "cost_price": 800,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MAGNUM Liter",
+      "cost_price": 380,
+      "dealers_price_cod": 400,
+      "terms_30_days": 410,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MAGNUM 500ml",
+      "cost_price": 240,
+      "dealers_price_cod": 270,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MAGNUM 250ml",
+      "cost_price": 135,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MAS CYPER",
+      "cost_price": 250,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MAS LAMBDA",
+      "cost_price": 420,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MALATHION Liter",
+      "cost_price": 330,
+      "dealers_price_cod": 350,
+      "terms_30_days": 360,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "MALATHION 500ml",
+      "cost_price": 200,
+      "dealers_price_cod": 220,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "ODIN Liter",
+      "cost_price": 360,
+      "dealers_price_cod": 380,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "ODIN 500ml",
+      "cost_price": 240,
+      "dealers_price_cod": 260,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PEXALON",
+      "cost_price": 1920,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PERFEKTHION Liter",
+      "cost_price": 1240,
+      "dealers_price_cod": 1260,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PERFEKTHION 500ml",
+      "cost_price": 660,
+      "dealers_price_cod": 680,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "PREVATHON",
+      "cost_price": "690/625",
+      "dealers_price_cod": 700,
+      "terms_30_days": 720,
+      "expiration_date": null,
+      "stock_available": null,
+      "note": "two handwritten cost values, please verify: '690' and '625'"
+    },
+    {
+      "product_name": "SOLOMON",
+      "cost_price": 330,
+      "dealers_price_cod": 350,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "SEVIN 50g",
+      "cost_price": 105,
+      "dealers_price_cod": 135,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "STAMPEDE",
+      "cost_price": 830,
+      "dealers_price_cod": 850,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "SELECRON 500ml",
+      "cost_price": 700,
+      "dealers_price_cod": 730,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "SELECRON 250ml",
+      "cost_price": 355,
+      "dealers_price_cod": 420,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "TERMINATOR",
+      "cost_price": 583,
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "TAG357",
+      "cost_price": 272,
+      "dealers_price_cod": 320,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null
+    },
+    {
+      "product_name": "VIRTAKO",
+      "cost_price": "1150/1060",
+      "dealers_price_cod": null,
+      "terms_30_days": null,
+      "expiration_date": null,
+      "stock_available": null,
+      "note": "two handwritten cost values, please verify: '1150' and '1060'"
+    }
+  ]
+}

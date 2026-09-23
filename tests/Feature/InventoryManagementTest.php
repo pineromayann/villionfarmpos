@@ -14,11 +14,13 @@ test('inventory index lists products', function () {
 
     $response->assertOk();
     $response->assertSee('Actellic 50 EC');
+    $response->assertSee('All categories');
 });
 
 test('a product can be created', function () {
     $response = $this->post(route('inventory.store'), [
         'name' => 'Karate 2.5 WG',
+        'category' => 'insecticide',
         'active_ingredient' => 'Lambda-cyhalothrin',
         'batch_number' => 'KZ-1234',
         'expiry_date' => now()->addYear()->format('Y-m-d'),
@@ -29,6 +31,39 @@ test('a product can be created', function () {
 
     $response->assertRedirect();
     $this->assertDatabaseHas('products', ['name' => 'Karate 2.5 WG']);
+});
+
+test('a product can be created with tier pricing', function () {
+    $response = $this->post(route('inventory.store'), [
+        'name' => 'FERTI-K',
+        'category' => 'foliar',
+        'cost_price' => 320,
+        'dealers_price_cod' => 340,
+        'terms_30_days' => 350,
+        'stock' => 0,
+        'unit' => 'L',
+    ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('products', [
+        'name' => 'FERTI-K',
+        'category' => 'foliar',
+        'cost_price' => 320,
+        'dealers_price_cod' => 340,
+        'terms_30_days' => 350,
+    ]);
+});
+
+test('a product requires a valid category', function () {
+    $response = $this->post(route('inventory.store'), [
+        'name' => 'Karate 2.5 WG',
+        'category' => 'fertilizer',
+        'price' => 18,
+        'stock' => 6,
+        'unit' => 'L',
+    ]);
+
+    $response->assertSessionHasErrors('category');
 });
 
 test('creating a product requires a name and numeric price', function () {
@@ -47,6 +82,7 @@ test('a product can be updated', function () {
 
     $response = $this->put(route('inventory.update', $product), [
         'name' => $product->name,
+        'category' => $product->category,
         'active_ingredient' => $product->active_ingredient,
         'batch_number' => $product->batch_number,
         'expiry_date' => $product->expiry_date?->format('Y-m-d'),
@@ -82,4 +118,37 @@ test('expiring soon products are flagged', function () {
 
     expect($expiringSoon->isExpiringSoon())->toBeTrue();
     expect($notExpiringSoon->isExpiringSoon())->toBeFalse();
+});
+
+test('sale price prefers dealer COD over 30 day terms over cost', function () {
+    $product = Product::factory()->make([
+        'cost_price' => 320,
+        'dealers_price_cod' => 340,
+        'terms_30_days' => 350,
+        'price' => 500,
+    ]);
+
+    expect($product->salePrice())->toBe(340.0);
+});
+
+test('sale price falls back to cost when no dealer prices exist', function () {
+    $product = Product::factory()->make([
+        'cost_price' => 920,
+        'dealers_price_cod' => null,
+        'terms_30_days' => null,
+        'price' => null,
+    ]);
+
+    expect($product->salePrice())->toBe(920.0);
+});
+
+test('sale price falls back to the price column when no pricing tiers exist', function () {
+    $product = Product::factory()->make([
+        'cost_price' => null,
+        'dealers_price_cod' => null,
+        'terms_30_days' => null,
+        'price' => 18.5,
+    ]);
+
+    expect($product->salePrice())->toBe(18.5);
 });
