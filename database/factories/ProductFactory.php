@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Product;
+use App\Models\ProductUnit;
+use App\Models\Unit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -28,9 +30,23 @@ class ProductFactory extends Factory
             'dealers_price_cod' => fake()->randomFloat(2, 5, 50),
             'terms_30_days' => fake()->optional()->randomFloat(2, 5, 50),
             'stock' => fake()->randomFloat(2, 0, 100),
-            'unit' => fake()->randomElement(['L', 'kg']),
+            'base_unit_id' => Unit::where('abbreviation', 'L')->value('id'),
             'note' => null,
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Product $product) {
+            if ($product->base_unit_id === null) {
+                return;
+            }
+
+            ProductUnit::updateOrCreate(
+                ['product_id' => $product->id, 'unit_id' => $product->base_unit_id],
+                ['conversion_to_base' => 1, 'is_base' => true]
+            );
+        });
     }
 
     public function lowStock(): static

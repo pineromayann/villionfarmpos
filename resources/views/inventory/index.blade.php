@@ -149,6 +149,16 @@
                                                 <input type="number" name="quantity" id="quantity_in" min="0.01" step="0.01" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
                                             </div>
                                             <div>
+                                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="unit_in">Unit</label>
+                                                <select name="unit_id" id="unit_in" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                                                    @foreach ($product->sellingUnits as $productUnit)
+                                                        <option value="{{ $productUnit->unit_id }}" @selected($productUnit->is_base)>
+                                                            {{ $productUnit->unit->name }} ({{ $productUnit->unit->abbreviation }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div>
                                                 <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="unit_cost">Unit cost (₱)</label>
                                                 <input type="number" name="unit_cost" id="unit_cost" min="0" step="0.01" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
                                             </div>
@@ -194,6 +204,16 @@
                                             <div>
                                                 <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="quantity_out">Quantity</label>
                                                 <input type="number" name="quantity" id="quantity_out" min="0.01" step="0.01" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                                            </div>
+                                            <div>
+                                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="unit_out">Unit</label>
+                                                <select name="unit_id" id="unit_out" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                                                    @foreach ($product->sellingUnits as $productUnit)
+                                                        <option value="{{ $productUnit->unit_id }}" @selected($productUnit->is_base)>
+                                                            {{ $productUnit->unit->name }} ({{ $productUnit->unit->abbreviation }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
                                             </div>
                                             <div>
                                                 <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="reason_out">Reason</label>

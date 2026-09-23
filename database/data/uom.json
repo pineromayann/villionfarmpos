@@ -1,0 +1,73 @@
+{
+  "unit_types": [
+    {
+      "id": "quantity",
+      "name": "Quantity",
+      "description": "Countable items measured by number of pieces.",
+      "units": [
+        { "name": "Piece", "abbreviation": "pc" },
+        { "name": "Pair", "abbreviation": "pair" },
+        { "name": "Dozen", "abbreviation": "dz" }
+      ]
+    },
+    {
+      "id": "packaging",
+      "name": "Packaging",
+      "description": "Containers and packages used to hold products.",
+      "units": [
+        { "name": "Pack", "abbreviation": "pack" },
+        { "name": "Box", "abbreviation": "box" },
+        { "name": "Bag", "abbreviation": "bag" },
+        { "name": "Sack", "abbreviation": "sack" },
+        { "name": "Crate", "abbreviation": "crate" },
+        { "name": "Tray", "abbreviation": "tray" },
+        { "name": "Basket", "abbreviation": "basket" },
+        { "name": "Bale", "abbreviation": "bale" },
+        { "name": "Bottle", "abbreviation": "bottle" },
+        { "name": "Can", "abbreviation": "can" },
+        { "name": "Jar", "abbreviation": "jar" },
+        { "name": "Pail", "abbreviation": "pail" },
+        { "name": "Drum", "abbreviation": "drum" },
+        { "name": "Roll", "abbreviation": "roll" }
+      ]
+    },
+    {
+      "id": "produce",
+      "name": "Produce",
+      "description": "Fresh agricultural produce measured in bunches or bundles.",
+      "units": [
+        { "name": "Bunch", "abbreviation": "bunch" },
+        { "name": "Bundle", "abbreviation": "bundle" }
+      ]
+    },
+    {
+      "id": "weight",
+      "name": "Weight",
+      "description": "Units of mass and weight.",
+      "units": [
+        { "name": "Gram", "abbreviation": "g" },
+        { "name": "Kilogram", "abbreviation": "kg" },
+        { "name": "Tonne", "abbreviation": "t" }
+      ]
+    },
+    {
+      "id": "volume",
+      "name": "Volume",
+      "description": "Units of liquid volume.",
+      "units": [
+        { "name": "Millilitre", "abbreviation": "mL" },
+        { "name": "Litre", "abbreviation": "L" },
+        { "name": "Gallon", "abbreviation": "gal" }
+      ]
+    },
+    {
+      "id": "length",
+      "name": "Length",
+      "description": "Units of length and distance.",
+      "units": [
+        { "name": "Centimetre", "abbreviation": "cm" },
+        { "name": "Metre", "abbreviation": "m" }
+      ]
+    }
+  ]
+}

@@ -3,17 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use RuntimeException;
 
 class Product extends Model
 {
     use HasFactory;
 
     const CATEGORIES = ['foliar', 'herbicide', 'insecticide', 'molluscicide'];
-
-    const UNITS = ['L', 'ml', 'GAL', 'kg'];
 
     const LOW_STOCK_THRESHOLD = 10;
 
@@ -33,7 +34,7 @@ class Product extends Model
         'dealers_price_cod',
         'terms_30_days',
         'stock',
-        'unit',
+        'base_unit_id',
         'note',
     ];
 
@@ -76,6 +77,30 @@ class Product extends Model
         return $this->hasMany(Refund::class);
     }
 
+    /**
+     * @return BelongsTo<Unit, $this>
+     */
+    public function baseUnit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class, 'base_unit_id');
+    }
+
+    /**
+     * @return HasMany<ProductUnit, $this>
+     */
+    public function sellingUnits(): HasMany
+    {
+        return $this->hasMany(ProductUnit::class)->with('unit');
+    }
+
+    /**
+     * Display name kept for backward compatibility: the base unit abbreviation.
+     */
+    protected function unit(): Attribute
+    {
+        return Attribute::get(fn () => $this->baseUnit?->abbreviation);
+    }
+
     public function salePrice(): float
     {
         return (float) ($this->dealers_price_cod ?? $this->terms_30_days ?? $this->cost_price ?? $this->price);
@@ -90,6 +115,33 @@ class Product extends Model
     {
         return $this->expiry_date !== null
             && $this->expiry_date->lessThanOrEqualTo(now()->addMonths(self::EXPIRING_SOON_MONTHS));
+    }
+
+    /**
+     * The default selling unit for this product: its base unit.
+     */
+    public function defaultSellingUnit(): ?ProductUnit
+    {
+        return $this->sellingUnits->firstWhere('is_base', true)
+            ?? $this->sellingUnits->first();
+    }
+
+    /**
+     * Convert a quantity expressed in one of the product's selling units into base units.
+     */
+    public function convertToBase(float $quantity, Unit $unit): float
+    {
+        $productUnit = $this->sellingUnits->firstWhere('unit_id', $unit->id);
+
+        if ($productUnit === null) {
+            throw new RuntimeException("The unit \"{$unit->abbreviation}\" is not a selling unit for {$this->name}.");
+        }
+
+        if ($this->baseUnit !== null && $unit->unit_type_id !== $this->baseUnit->unit_type_id) {
+            throw new RuntimeException("Cannot convert \"{$unit->abbreviation}\" to base unit \"{$this->baseUnit->abbreviation}\".");
+        }
+
+        return $quantity * (float) $productUnit->conversion_to_base;
     }
 
     /**

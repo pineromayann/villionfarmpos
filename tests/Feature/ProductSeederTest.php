@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Product;
+use App\Models\Unit;
 use Database\Seeders\ProductSeeder;
 
 test('the seeder imports products from every category file', function () {
@@ -58,4 +59,26 @@ test('the seeder is idempotent', function () {
     $this->seed(ProductSeeder::class);
 
     expect(Product::where('name', 'FERTI-K')->count())->toBe(1);
+    expect(Product::where('name', 'FERTI-K')->first()->sellingUnits()->count())->toBe(1);
+});
+
+test('the seeder maps legacy units to uom base units', function () {
+    $this->seed(ProductSeeder::class);
+
+    $this->assertDatabaseHas('products', [
+        'name' => 'KARATE 500ml',
+        'base_unit_id' => Unit::where('abbreviation', 'mL')->value('id'),
+    ]);
+    $this->assertDatabaseHas('products', [
+        'name' => 'FERTI-K',
+        'base_unit_id' => Unit::where('abbreviation', 'L')->value('id'),
+    ]);
+
+    $product = Product::where('name', 'FERTI-K')->first();
+
+    $this->assertDatabaseHas('product_units', [
+        'product_id' => $product->id,
+        'unit_id' => Unit::where('abbreviation', 'L')->value('id'),
+        'is_base' => true,
+    ]);
 });

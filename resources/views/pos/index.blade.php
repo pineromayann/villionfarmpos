@@ -13,19 +13,47 @@
             customerId: '',
             search: '',
             category: 'all',
+            defaultUnit(product) {
+                const units = product.sellingUnits?.length ? product.sellingUnits : [{ id: null, abbreviation: product.unit || '', conversion: 1, base: true }];
+                return units.find((u) => u.base) || units[0];
+            },
             addToCart(product) {
-                const existing = this.cart.find(i => i.id === product.id);
+                const unit = this.defaultUnit(product);
+                const conversion = Number(unit.conversion) || 1;
+                const existing = this.cart.find((i) => i.id === product.id);
                 if (existing) {
-                    if (existing.qty < product.stock) existing.qty++;
+                    if ((existing.qty + 1) * existing.conversion <= existing.stock) existing.qty++;
                 } else if (product.stock > 0) {
-                    this.cart.push({ id: product.id, name: product.name, price: product.price, unit: product.unit, stock: product.stock, qty: 1 });
+                    this.cart.push({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        stock: product.stock,
+                        qty: 1,
+                        unitId: unit.id ?? null,
+                        conversion,
+                        unit: unit.abbreviation,
+                        units: product.sellingUnits || [],
+                    });
                 }
+            },
+            lineUnit(item, unitId) {
+                const unit = item.units.find((u) => Number(u.id) === Number(unitId)) || item.units[0];
+                if (!unit) return;
+                item.unitId = Number(unit.id) ?? null;
+                item.conversion = Number(unit.conversion) || 1;
+                item.unit = unit.abbreviation;
+                const maxQty = Math.floor(item.stock / item.conversion);
+                if (item.qty > maxQty) item.qty = Math.max(1, maxQty);
+            },
+            baseQty(item) {
+                return item.qty * item.conversion;
             },
             removeFromCart(index) {
                 this.cart.splice(index, 1);
             },
             get subtotal() {
-                return this.cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+                return this.cart.reduce((sum, i) => sum + i.price * i.qty * i.conversion, 0);
             },
             get total() {
                 return Math.max(0, this.subtotal - (parseFloat(this.discount) || 0));
@@ -72,7 +100,19 @@
                     <button
                         type="button"
                         x-show="(category === 'all' || category === {{ Illuminate\Support\Js::from($product->category ?? null) }}) && (!search || {{ Illuminate\Support\Js::from(Str::lower($product->name.' '.$product->category.' '.$product->active_ingredient)) }}.includes(search.toLowerCase()))"
-                        @click="addToCart({{ Illuminate\Support\Js::from(['id' => $product->id, 'name' => $product->name, 'price' => $product->salePrice(), 'unit' => $product->unit, 'stock' => (float) $product->stock]) }})"
+                        @click="addToCart({{ Illuminate\Support\Js::from([
+                            'id' => $product->id,
+                            'name' => $product->name,
+                            'price' => $product->salePrice(),
+                            'unit' => $product->unit,
+                            'stock' => (float) $product->stock,
+                            'sellingUnits' => $product->sellingUnits->map(fn ($pu) => [
+                                'id' => $pu->unit_id,
+                                'abbreviation' => $pu->unit->abbreviation,
+                                'conversion' => (float) $pu->conversion_to_base,
+                                'base' => (bool) $pu->is_base,
+                            ])->values()->all(),
+                        ]) }})"
                         class="rounded-xl border border-gray-200 bg-white p-4 text-left hover:border-gray-300 hover:shadow-sm"
                     >
                         <div class="flex items-start justify-between">
@@ -97,7 +137,7 @@
 
             <form method="POST" action="{{ route('pos.store') }}" class="mt-4">
                 @csrf
-                <input type="hidden" name="cart" :value="JSON.stringify(cart.map(i => ({ product_id: i.id, qty: i.qty })))">
+                <input type="hidden" name="cart" :value="JSON.stringify(cart.map(i => ({ product_id: i.id, unit_id: i.unitId, qty: i.qty })))">
 
                 <label class="block text-sm font-medium text-gray-700">Customer</label>
                 <select name="customer_id" x-model="customerId" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
@@ -117,15 +157,23 @@
                             <li class="flex items-center justify-between gap-2 px-3 py-2 text-sm">
                                 <div class="min-w-0">
                                     <p class="truncate font-medium text-gray-900" x-text="item.name"></p>
-                                    <div class="flex items-center gap-1.5 text-gray-500">
+                                    <div class="mt-1 flex items-center gap-1.5 text-gray-500">
                                         <button type="button" @click="item.qty > 1 ? item.qty-- : removeFromCart(index)" class="rounded border border-gray-200 px-1.5 leading-5 hover:bg-gray-50">-</button>
                                         <span x-text="item.qty"></span>
-                                        <button type="button" @click="item.qty < item.stock && item.qty++" class="rounded border border-gray-200 px-1.5 leading-5 hover:bg-gray-50">+</button>
-                                        <span x-text="item.unit"></span>
+                                        <button type="button" @click="(item.qty + 1) * item.conversion <= item.stock && item.qty++" class="rounded border border-gray-200 px-1.5 leading-5 hover:bg-gray-50">+</button>
+                                        <select
+                                            @change="lineUnit(item, $event.target.value)"
+                                            class="rounded border border-gray-200 px-1.5 py-0.5 text-xs"
+                                        >
+                                            <template x-for="unit in item.units" :key="unit.id">
+                                                <option :value="unit.id" :selected="Number(item.unitId) === Number(unit.id)" x-text="unit.abbreviation"></option>
+                                            </template>
+                                        </select>
+                                        <span class="text-xs text-gray-400" x-text="item.unitId !== null ? '= ' + baseQty(item).toFixed(2) + ' ' + (item.units.find(u => u.base)?.abbreviation || '') : ''"></span>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="font-medium text-gray-900" x-text="'₱' + (item.price * item.qty).toFixed(2)"></span>
+                                    <span class="font-medium text-gray-900" x-text="'₱' + (item.price * item.qty * item.conversion).toFixed(2)"></span>
                                     <button type="button" @click="removeFromCart(index)" class="text-gray-400 hover:text-red-600">
                                         <x-icon name="x" class="h-4 w-4" />
                                     </button>

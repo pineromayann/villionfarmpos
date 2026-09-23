@@ -19,6 +19,7 @@ class StockMovement extends Model
         'product_id',
         'type',
         'quantity',
+        'unit_id',
         'unit_cost',
         'reason',
         'supplier_id',
@@ -52,6 +53,14 @@ class StockMovement extends Model
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * @return BelongsTo<Unit, $this>
+     */
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class);
     }
 
     /**

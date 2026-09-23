@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Product;
+use App\Models\Unit;
 use App\Models\User;
 
 beforeEach(function () {
@@ -26,7 +27,7 @@ test('a product can be created', function () {
         'expiry_date' => now()->addYear()->format('Y-m-d'),
         'price' => 18.00,
         'stock' => 6,
-        'unit' => 'kg',
+        'base_unit_id' => Unit::where('abbreviation', 'kg')->value('id'),
     ]);
 
     $response->assertRedirect();
@@ -41,7 +42,7 @@ test('a product can be created with tier pricing', function () {
         'dealers_price_cod' => 340,
         'terms_30_days' => 350,
         'stock' => 0,
-        'unit' => 'L',
+        'base_unit_id' => Unit::where('abbreviation', 'L')->value('id'),
     ]);
 
     $response->assertRedirect();
@@ -60,22 +61,22 @@ test('a product requires a valid category', function () {
         'category' => 'fertilizer',
         'price' => 18,
         'stock' => 6,
-        'unit' => 'L',
+        'base_unit_id' => Unit::where('abbreviation', 'L')->value('id'),
     ]);
 
     $response->assertSessionHasErrors('category');
 });
 
-test('a product requires a unit from the list', function () {
+test('a product requires a valid base unit', function () {
     $response = $this->post(route('inventory.store'), [
         'name' => 'Karate 2.5 WG',
         'category' => 'insecticide',
         'price' => 18,
         'stock' => 6,
-        'unit' => 'bottle',
+        'base_unit_id' => 999999,
     ]);
 
-    $response->assertSessionHasErrors('unit');
+    $response->assertSessionHasErrors('base_unit_id');
 });
 
 test('creating a product requires a name and numeric price', function () {
@@ -83,7 +84,7 @@ test('creating a product requires a name and numeric price', function () {
         'name' => '',
         'price' => 'abc',
         'stock' => 6,
-        'unit' => 'L',
+        'base_unit_id' => Unit::where('abbreviation', 'L')->value('id'),
     ]);
 
     $response->assertSessionHasErrors(['name', 'price']);
@@ -100,7 +101,7 @@ test('a product can be updated', function () {
         'expiry_date' => $product->expiry_date?->format('Y-m-d'),
         'price' => $product->price,
         'stock' => 50,
-        'unit' => $product->unit,
+        'base_unit_id' => $product->base_unit_id,
     ]);
 
     $response->assertRedirect();

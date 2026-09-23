@@ -78,7 +78,7 @@
                             @endif
                         </td>
                         <td class="px-5 py-3 {{ $movement->isIn() ? 'text-emerald-700' : 'text-red-700' }}">
-                            {{ $movement->isIn() ? '+' : '-' }}{{ number_format((float) $movement->quantity, 2) }} {{ $movement->product->unit }}
+                            {{ $movement->isIn() ? '+' : '-' }}{{ number_format((float) $movement->quantity, 2) }} {{ $movement->unit?->abbreviation ?? $movement->product?->unit }}
                         </td>
                         <td class="px-5 py-3 text-gray-700">{{ ucfirst($movement->reason ?? '—') }}</td>
                         <td class="px-5 py-3 text-gray-700">

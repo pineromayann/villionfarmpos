@@ -2,18 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class SaleItem extends Model
+class ProductUnit extends Model
 {
-    use HasFactory;
-
     /**
      * @var array<int, string>
      */
-    protected $fillable = ['sale_id', 'product_id', 'quantity', 'unit_id', 'unit_price', 'line_total'];
+    protected $fillable = ['product_id', 'unit_id', 'conversion_to_base', 'is_base'];
 
     /**
      * @return array<string, string>
@@ -21,18 +18,9 @@ class SaleItem extends Model
     protected function casts(): array
     {
         return [
-            'quantity' => 'decimal:2',
-            'unit_price' => 'decimal:2',
-            'line_total' => 'decimal:2',
+            'conversion_to_base' => 'decimal:4',
+            'is_base' => 'boolean',
         ];
-    }
-
-    /**
-     * @return BelongsTo<Sale, $this>
-     */
-    public function sale(): BelongsTo
-    {
-        return $this->belongsTo(Sale::class);
     }
 
     /**

@@ -23,7 +23,7 @@ test('sales index lists transactions and their totals', function () {
 });
 
 test('a transaction row opens a modal with its item details', function () {
-    $product = Product::factory()->create(['name' => 'Karate 2.5 WG', 'price' => 20, 'unit' => 'kg']);
+    $product = Product::factory()->create(['name' => 'Karate 2.5 WG', 'price' => 20]);
     $sale = Sale::factory()->create();
     $sale->items()->create([
         'product_id' => $product->id,

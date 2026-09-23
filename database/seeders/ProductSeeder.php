@@ -3,7 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\Product;
+use App\Models\ProductUnit;
+use App\Models\Unit;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 
 class ProductSeeder extends Seeder
 {
@@ -12,13 +15,28 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
+        $units = Unit::pluck('id', 'abbreviation');
+
         foreach (glob(base_path('dbjsons/*_products.json')) as $file) {
             $data = json_decode((string) file_get_contents($file), true, flags: JSON_THROW_ON_ERROR);
 
             foreach ($data['products'] as $item) {
-                Product::updateOrCreate(
+                $product = Product::updateOrCreate(
                     ['name' => $item['product_name']],
-                    $this->productData($data['category'], $item)
+                    $this->productData($data['category'], $item, $units)
+                );
+
+                $unitId = $units[$this->unitFor($item['product_name'])] ?? null;
+
+                if ($unitId === null) {
+                    continue;
+                }
+
+                $product->update(['base_unit_id' => $unitId]);
+
+                ProductUnit::updateOrCreate(
+                    ['product_id' => $product->id, 'unit_id' => $unitId],
+                    ['conversion_to_base' => 1, 'is_base' => true]
                 );
             }
         }
@@ -26,9 +44,10 @@ class ProductSeeder extends Seeder
 
     /**
      * @param  array<string, mixed>  $item
+     * @param  Collection<int, mixed>  $units
      * @return array<string, mixed>
      */
-    private function productData(string $category, array $item): array
+    private function productData(string $category, array $item, $units): array
     {
         $costPrice = $this->costPrice($item);
         $dealerPrice = $this->nullableDecimal($item['dealers_price_cod'] ?? null);
@@ -42,7 +61,7 @@ class ProductSeeder extends Seeder
             'expiry_date' => $item['expiration_date'] ?? null,
             'price' => $dealerPrice ?? $termsPrice ?? $costPrice,
             'stock' => $this->nullableDecimal($item['stock_available'] ?? null) ?? 0,
-            'unit' => $this->unitFor($item['product_name']),
+            'base_unit_id' => $units[$this->unitFor($item['product_name'])] ?? null,
             'note' => $item['note'] ?? null,
         ];
     }
@@ -70,16 +89,19 @@ class ProductSeeder extends Seeder
         return (float) $value;
     }
 
+    /**
+     * Map the legacy product-name unit to the exact UOM catalog abbreviation.
+     */
     private function unitFor(string $name): string
     {
         $lower = strtolower($name);
 
         if (str_contains($lower, 'gal')) {
-            return 'GAL';
+            return 'gal';
         }
 
         if (str_contains($lower, 'ml')) {
-            return 'ml';
+            return 'mL';
         }
 
         if (preg_match('/\d+\s*(g|kg)\b/', $lower)) {

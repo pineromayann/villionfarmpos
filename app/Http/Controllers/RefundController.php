@@ -26,7 +26,7 @@ class RefundController extends Controller
     public function saleItems(Sale $sale): JsonResponse
     {
         return response()->json(
-            $sale->items()->with('product:id,name,unit')->get()->map(fn (SaleItem $item) => [
+            $sale->items()->with('product:id,name')->get()->map(fn (SaleItem $item) => [
                 'id' => $item->id,
                 'product' => $item->product?->name ?? 'Unknown product',
                 'unit' => $item->product?->unit,
