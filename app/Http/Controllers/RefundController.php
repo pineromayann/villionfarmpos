@@ -42,14 +42,25 @@ class RefundController extends Controller
         $validated = $request->validate([
             'items' => ['required', 'array', 'min:1'],
             'items.*.sale_item_id' => ['required', 'integer', 'exists:sale_items,id'],
-            'items.*.quantity' => ['required', 'numeric', 'min:0.01'],
+            'items.*.quantity' => ['nullable', 'numeric', 'min:0'],
             'note' => ['nullable', 'string', 'max:255'],
         ]);
 
+        $items = collect($validated['items'])
+            ->filter(fn (array $line) => (float) ($line['quantity'] ?? 0) > 0)
+            ->values()
+            ->all();
+
+        if ($items === []) {
+            throw ValidationException::withMessages([
+                'items.quantity' => 'Enter a quantity for at least one item.',
+            ]);
+        }
+
         $messages = [];
 
-        DB::transaction(function () use ($validated, &$messages) {
-            foreach ($validated['items'] as $index => $line) {
+        DB::transaction(function () use ($items, $validated, &$messages) {
+            foreach ($items as $index => $line) {
                 $item = SaleItem::with('product')->findOrFail($line['sale_item_id']);
                 $sale = $item->sale;
                 $returnable = (float) $item->quantity - (float) $sale->refundedQuantityFor($item);
@@ -63,7 +74,7 @@ class RefundController extends Controller
                 throw ValidationException::withMessages($messages);
             }
 
-            foreach ($validated['items'] as $line) {
+            foreach ($items as $line) {
                 $item = SaleItem::with('product')->findOrFail($line['sale_item_id']);
                 $product = $item->product;
                 $lineTotal = (float) $item->unit_price * (float) $line['quantity'];

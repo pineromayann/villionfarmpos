@@ -69,8 +69,14 @@
     </div>
     <div>
         <label class="block text-sm font-medium text-gray-700">Unit</label>
-        <input type="text" name="unit" value="{{ old('unit', $product?->unit ?? 'L') }}" required
+        <select name="unit" required
             class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+            @foreach (\App\Models\Product::UNITS as $unit)
+                <option value="{{ $unit }}" @selected(old('unit', $product?->unit ?? 'L') === $unit)>
+                    {{ $unit }}
+                </option>
+            @endforeach
+        </select>
     </div>
 </div>
 

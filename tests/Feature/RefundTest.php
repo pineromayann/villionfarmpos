@@ -115,6 +115,47 @@ test('a refund cannot exceed the returnable quantity', function () {
     expect($product->fresh()->stock)->toEqual(5);
 });
 
+test('a refund requires at least one quantity', function () {
+    $product = Product::factory()->create(['stock' => 5]);
+    $sale = Sale::factory()->create();
+    $item = SaleItem::factory()->create([
+        'sale_id' => $sale->id,
+        'product_id' => $product->id,
+        'quantity' => 3,
+    ]);
+
+    $response = $this->post(route('refunds.store'), [
+        'items' => [
+            ['sale_item_id' => $item->id, 'quantity' => 0],
+        ],
+    ]);
+
+    $response->assertSessionHasErrors('items.quantity');
+    $this->assertDatabaseMissing('refunds', ['sale_item_id' => $item->id]);
+    expect($product->fresh()->stock)->toEqual(5);
+});
+
+test('a refund ignores items that were left without a quantity', function () {
+    $product = Product::factory()->create(['stock' => 5]);
+    $sale = Sale::factory()->create();
+    $item = SaleItem::factory()->create([
+        'sale_id' => $sale->id,
+        'product_id' => $product->id,
+        'quantity' => 3,
+    ]);
+
+    $response = $this->post(route('refunds.store'), [
+        'items' => [
+            ['sale_item_id' => $item->id, 'quantity' => 2],
+            ['sale_item_id' => $item->id, 'quantity' => 0],
+        ],
+    ]);
+
+    $response->assertRedirect(route('refunds.index'));
+    $this->assertDatabaseHas('refunds', ['sale_item_id' => $item->id, 'quantity' => 2]);
+    expect(Refund::count())->toBe(1);
+});
+
 test('a refund requires at least one item', function () {
     $response = $this->post(route('refunds.store'), ['items' => []]);
 

@@ -59,13 +59,14 @@
                                     type="hidden"
                                     :name="`items[${index}][sale_item_id]`"
                                     :value="item.id"
-                                    :disabled="!Number(item.refund_qty)"
+                                    :disabled="item.remaining <= 0"
                                 >
                                 <input
                                     type="number"
                                     min="0"
                                     :max="item.remaining"
                                     step="0.01"
+                                    :name="`items[${index}][quantity]`"
                                     x-model.number="item.refund_qty"
                                     :disabled="item.remaining <= 0"
                                     placeholder="Qty"

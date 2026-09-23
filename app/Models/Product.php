@@ -13,6 +13,8 @@ class Product extends Model
 
     const CATEGORIES = ['foliar', 'herbicide', 'insecticide', 'molluscicide'];
 
+    const UNITS = ['L', 'ml', 'GAL', 'kg'];
+
     const LOW_STOCK_THRESHOLD = 10;
 
     const EXPIRING_SOON_MONTHS = 6;

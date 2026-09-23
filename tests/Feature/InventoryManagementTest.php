@@ -66,6 +66,18 @@ test('a product requires a valid category', function () {
     $response->assertSessionHasErrors('category');
 });
 
+test('a product requires a unit from the list', function () {
+    $response = $this->post(route('inventory.store'), [
+        'name' => 'Karate 2.5 WG',
+        'category' => 'insecticide',
+        'price' => 18,
+        'stock' => 6,
+        'unit' => 'bottle',
+    ]);
+
+    $response->assertSessionHasErrors('unit');
+});
+
 test('creating a product requires a name and numeric price', function () {
     $response = $this->post(route('inventory.store'), [
         'name' => '',

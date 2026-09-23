@@ -59,7 +59,7 @@ class ProductController extends Controller
             'dealers_price_cod' => ['nullable', 'numeric', 'min:0'],
             'terms_30_days' => ['nullable', 'numeric', 'min:0'],
             'stock' => ['required', 'numeric', 'min:0'],
-            'unit' => ['required', 'string', 'max:10'],
+            'unit' => ['required', 'in:'.implode(',', Product::UNITS)],
             'note' => ['nullable', 'string', 'max:1000'],
         ]);
 
