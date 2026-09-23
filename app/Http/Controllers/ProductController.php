@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\UnitType;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +17,6 @@ class ProductController extends Controller
     {
         return view('inventory.index', [
             'products' => Product::with(['sellingUnits', 'baseUnit'])->orderBy('name')->get(),
-            'suppliers' => Supplier::orderBy('name')->get(),
             'unitTypes' => UnitType::with('units')->get(),
         ]);
     }
@@ -39,7 +37,7 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product): RedirectResponse
     {
-        $validated = $this->validated($request);
+        $validated = $this->validated($request, true);
         $sellingUnits = $this->validatedSellingUnits($request, $validated['base_unit_id']);
 
         DB::transaction(function () use ($product, $validated, $sellingUnits) {
@@ -63,7 +61,7 @@ class ProductController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function validated(Request $request): array
+    private function validated(Request $request, bool $ignoreStock = false): array
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -75,7 +73,9 @@ class ProductController extends Controller
             'cost_price' => ['nullable', 'numeric', 'min:0'],
             'dealers_price_cod' => ['nullable', 'numeric', 'min:0'],
             'terms_30_days' => ['nullable', 'numeric', 'min:0'],
-            'stock' => ['required', 'numeric', 'min:0'],
+            'stock' => $ignoreStock
+                ? ['nullable', 'numeric', 'min:0']
+                : ['required', 'numeric', 'min:0'],
             'base_unit_id' => ['required', 'integer', 'exists:units,id'],
             'note' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -84,6 +84,10 @@ class ProductController extends Controller
             ?? ($validated['dealers_price_cod'] ?? null)
             ?? ($validated['terms_30_days'] ?? null)
             ?? ($validated['cost_price'] ?? null);
+
+        if ($ignoreStock) {
+            unset($validated['stock']);
+        }
 
         return $validated;
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\ProductUnit;
 use App\Models\StockMovement;
+use App\Models\Supplier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -36,7 +37,8 @@ class StockController extends Controller
 
         return view('stock.movements', [
             'movements' => $movements,
-            'products' => Product::orderBy('name')->get(),
+            'products' => Product::with('sellingUnits')->orderBy('name')->get(),
+            'suppliers' => Supplier::orderBy('name')->get(),
             'filters' => $validated,
             'totalIn' => $totalIn,
             'totalOut' => $totalOut,

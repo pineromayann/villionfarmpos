@@ -29,6 +29,10 @@ test('the stock movements page lists movements and net change', function () {
     $response->assertOk();
     $response->assertSee('Karate 2.5 WG');
     $response->assertSee('3.00');
+    $response->assertSee('Stock in');
+    $response->assertSee('Stock out');
+    $response->assertSee('Add stock');
+    $response->assertSee('Remove stock');
 });
 
 test('stock in increases stock and records a movement', function () {

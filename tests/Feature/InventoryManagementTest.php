@@ -90,11 +90,11 @@ test('creating a product requires a name and numeric price', function () {
     $response->assertSessionHasErrors(['name', 'price']);
 });
 
-test('a product can be updated', function () {
+test('a product can be updated without altering stock', function () {
     $product = Product::factory()->create(['stock' => 5]);
 
     $response = $this->put(route('inventory.update', $product), [
-        'name' => $product->name,
+        'name' => 'Renamed Product',
         'category' => $product->category,
         'active_ingredient' => $product->active_ingredient,
         'batch_number' => $product->batch_number,
@@ -105,7 +105,7 @@ test('a product can be updated', function () {
     ]);
 
     $response->assertRedirect();
-    $this->assertDatabaseHas('products', ['id' => $product->id, 'stock' => 50]);
+    $this->assertDatabaseHas('products', ['id' => $product->id, 'name' => 'Renamed Product', 'stock' => 5]);
 });
 
 test('a product can be deleted', function () {

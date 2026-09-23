@@ -96,11 +96,21 @@
             <input type="number" step="0.01" min="0" name="price" value="{{ old('price', $product?->price) }}"
                 class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
         </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Stock</label>
-            <input type="number" step="0.01" min="0" name="stock" value="{{ old('stock', $product?->stock) }}" required
-                class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-        </div>
+        @if ($product)
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Stock</label>
+                <p class="mt-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900">
+                    {{ rtrim(rtrim(number_format($product->stock, 2), '0'), '.') }} {{ $product->unit }}
+                </p>
+                <p class="mt-1 text-xs text-gray-400">Stock is adjusted from the Stock page.</p>
+            </div>
+        @else
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Stock</label>
+                <input type="number" step="0.01" min="0" name="stock" value="{{ old('stock', $product?->stock) }}" required
+                    class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+            </div>
+        @endif
         <div>
             <label class="block text-sm font-medium text-gray-700">Base unit</label>
             <select name="base_unit_id" x-model="baseUnitId" @change="syncRows()" required
