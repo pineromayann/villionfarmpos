@@ -105,7 +105,7 @@ class PosController extends Controller
                 $lines[] = [
                     'product' => $product,
                     'quantity' => $baseQty,
-                    'unit_id' => $productUnit->unit_id,
+                    'unit_id' => $product->base_unit_id,
                     'unit_price' => $product->salePrice(),
                     'line_total' => $lineTotal,
                     'partner' => $partner,
