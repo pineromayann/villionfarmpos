@@ -80,6 +80,8 @@ class PosController extends Controller
         $sale = DB::transaction(function () use ($cart, $validated) {
             $subtotal = 0;
             $lines = [];
+            $consumedOwned = [];
+            $consumedConsigned = [];
 
             foreach ($cart as $line) {
                 $product = Product::lockForUpdate()->findOrFail($line['product_id']);
@@ -92,11 +94,17 @@ class PosController extends Controller
                     : null;
 
                 if ($partner === null) {
-                    if ($baseQty > (float) $product->stock) {
+                    $consumedOwned[$product->id] = ($consumedOwned[$product->id] ?? 0) + $baseQty;
+
+                    if ($consumedOwned[$product->id] > (float) $product->stock) {
                         abort(422, "Not enough stock for {$product->name}.");
                     }
-                } elseif ($baseQty > ConsignmentStockService::remainingBase($product, $partner)) {
-                    abort(422, "Not enough consigned stock of {$product->name} from {$partner->name}.");
+                } else {
+                    $consumedConsigned["{$product->id}:{$partner->id}"] = ($consumedConsigned["{$product->id}:{$partner->id}"] ?? 0) + $baseQty;
+
+                    if ($consumedConsigned["{$product->id}:{$partner->id}"] > ConsignmentStockService::remainingBase($product, $partner)) {
+                        abort(422, "Not enough consigned stock of {$product->name} from {$partner->name}.");
+                    }
                 }
 
                 $lineTotal = $product->salePrice() * $baseQty;
@@ -127,7 +135,7 @@ class PosController extends Controller
             ]);
 
             foreach ($lines as $line) {
-                $sale->items()->create([
+                $saleItem = $sale->items()->create([
                     'product_id' => $line['product']->id,
                     'quantity' => $line['quantity'],
                     'unit_id' => $line['unit_id'],
@@ -141,6 +149,7 @@ class PosController extends Controller
                     ConsignmentSale::create([
                         'partner_id' => $line['partner']->id,
                         'sale_id' => $sale->id,
+                        'sale_item_id' => $saleItem->id,
                         'customer_id' => $validated['customer_id'] ?? null,
                         'product_id' => $line['product']->id,
                         'quantity' => $line['quantity'],

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\ConsignmentStockService;
+use App\Models\ConsignmentSale;
 use App\Models\Refund;
 use App\Models\Sale;
 use App\Models\SaleItem;
@@ -20,6 +22,12 @@ class RefundController extends Controller
             'refunds' => Refund::with(['product', 'sale', 'saleItem'])->latest()->get(),
             'sales' => Sale::with('items.product')->latest()->take(50)->get(),
             'totalRefunded' => (float) Refund::sum('line_total'),
+            'consignedSaleItemIds' => ConsignmentSale::query()
+                ->where('refunded_quantity', '>', 0)
+                ->whereNotNull('sale_item_id')
+                ->pluck('sale_item_id')
+                ->map(fn (int $id) => (int) $id)
+                ->all(),
         ]);
     }
 
@@ -89,19 +97,54 @@ class RefundController extends Controller
                     'note' => $validated['note'] ?? null,
                 ]);
 
-                $product->increment('stock', $line['quantity']);
+                $returnedToConsignment = $this->reverseConsignmentSale($item, (float) $line['quantity']);
+                $returnedToOwnedStock = (float) $line['quantity'] - $returnedToConsignment;
 
-                $product->stockMovements()->create([
-                    'type' => 'in',
-                    'quantity' => $line['quantity'],
-                    'reason' => 'Return',
-                    'ref_type' => 'sale',
-                    'ref_id' => $item->sale_id,
-                    'user_id' => auth()->id(),
-                ]);
+                if ($returnedToOwnedStock > 0) {
+                    $product->increment('stock', $returnedToOwnedStock);
+
+                    $product->stockMovements()->create([
+                        'type' => 'in',
+                        'quantity' => $returnedToOwnedStock,
+                        'reason' => 'Return',
+                        'ref_type' => 'sale',
+                        'ref_id' => $item->sale_id,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
             }
         });
 
         return redirect()->route('refunds.index')->with('success', 'Refund processed.');
+    }
+
+    /**
+     * Reverse the consignment sale behind a refunded sale item so the returned
+     * goods go back on consigned stock and the partner is no longer owed.
+     * Consignment sales store quantities in base units, so the refund quantity
+     * is converted from the sale item's selling unit.
+     * Returns the quantity attributed to consigned stock, in the item's unit.
+     */
+    private function reverseConsignmentSale(SaleItem $item, float $quantity): float
+    {
+        $consignment = ConsignmentSale::where('sale_item_id', $item->id)->first();
+
+        if ($consignment === null) {
+            return 0.0;
+        }
+
+        $refundedBase = ConsignmentStockService::toBaseUnits($item->product, $quantity, $item->unit_id);
+        $availableBase = (float) $consignment->quantity - (float) $consignment->refunded_quantity;
+        $reversedBase = min($refundedBase, $availableBase);
+
+        if ($reversedBase <= 0) {
+            return 0.0;
+        }
+
+        $consignment->increment('refunded_quantity', $reversedBase);
+        $consignment->increment('refunded_line_total', $reversedBase * (float) $consignment->unit_price);
+        $consignment->increment('refunded_payable', $reversedBase * (float) $consignment->unit_cost);
+
+        return $quantity;
     }
 }

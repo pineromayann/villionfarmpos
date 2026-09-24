@@ -8,6 +8,7 @@ use App\Models\ConsignmentSale;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
+use App\Models\Refund;
 use App\Models\Sale;
 use App\Models\StockMovement;
 use App\Models\Supplier;
@@ -187,16 +188,44 @@ class ReportController extends Controller
      */
     private function salesReportData(Collection $sales, array $range): array
     {
+        $saleIds = $sales->pluck('id');
+
+        $refundedTotal = (float) Refund::whereIn('sale_id', $saleIds)->sum('line_total');
+
+        $payableTotal = ConsignmentSale::whereIn('sale_id', $saleIds)
+            ->get(['payable_amount', 'refunded_payable'])
+            ->sum(fn (ConsignmentSale $sale) => (float) $sale->payable_amount - (float) $sale->refunded_payable);
+
+        $grossRevenue = (float) $sales->sum('total');
+
+        $refundStats = Refund::whereIn('sale_id', $saleIds)
+            ->select('product_id')
+            ->selectRaw('SUM(quantity) AS units_returned, SUM(line_total) AS returned_revenue')
+            ->groupBy('product_id')
+            ->get()
+            ->keyBy('product_id');
+
+        $consignmentStats = ConsignmentSale::whereIn('sale_id', $saleIds)
+            ->get(['product_id', 'payable_amount', 'refunded_payable'])
+            ->groupBy('product_id')
+            ->map(fn ($rows) => $rows->sum(fn (ConsignmentSale $sale) => (float) $sale->payable_amount - (float) $sale->refunded_payable));
+
         $topProducts = $sales
             ->flatMap(fn (Sale $sale) => $sale->items)
             ->groupBy('product_id')
-            ->map(function (Collection $items) {
+            ->map(function (Collection $items) use ($refundStats, $consignmentStats) {
+                $sold = (float) $items->sum('quantity');
+                $lineTotal = (float) $items->sum('line_total');
                 $product = $items->first()->product;
+                $productId = $items->first()->product_id;
+                $returned = (float) ($refundStats->get($productId)?->units_returned ?? 0);
+                $returnedRevenue = (float) ($refundStats->get($productId)?->returned_revenue ?? 0);
+                $payable = (float) ($consignmentStats->get($productId) ?? 0);
 
                 return [
                     'name' => $product?->name ?? 'Unknown product',
-                    'units_sold' => $items->sum('quantity'),
-                    'revenue' => $items->sum('line_total'),
+                    'units_sold' => $sold - $returned,
+                    'revenue' => $lineTotal - $returnedRevenue - $payable,
                 ];
             })
             ->sortByDesc('revenue')
@@ -206,7 +235,10 @@ class ReportController extends Controller
             'sales' => $sales,
             'range' => $range,
             'generatedAt' => now(),
-            'totalRevenue' => $sales->sum('total'),
+            'totalRevenue' => $grossRevenue,
+            'earnedRevenue' => $grossRevenue - $refundedTotal - $payableTotal,
+            'refundedTotal' => $refundedTotal,
+            'consignmentPayable' => $payableTotal,
             'itemsSold' => $sales->flatMap->items->sum('quantity'),
             'topProducts' => $topProducts,
         ];
@@ -294,8 +326,10 @@ class ReportController extends Controller
             'range' => $range,
             'partners' => $partners,
             'generatedAt' => now(),
-            'totalRetail' => $rows->sum('line_total'),
-            'totalPayable' => $rows->sum('payable_amount'),
+            'totalRetail' => $rows->sum(fn (ConsignmentSale $sale) => $sale->netLineTotal()),
+            'totalPayable' => $rows->sum(fn (ConsignmentSale $sale) => $sale->netPayable()),
+            'totalEarned' => $rows->sum(fn (ConsignmentSale $sale) => $sale->netLineTotal()) - $rows->sum(fn (ConsignmentSale $sale) => $sale->netPayable()),
+            'totalReturned' => $rows->sum(fn (ConsignmentSale $sale) => (float) $sale->refunded_line_total),
             'totalDue' => ConsignmentStockService::totalBalanceDue(),
         ])->download('consignment-report.pdf');
     }
@@ -306,15 +340,16 @@ class ReportController extends Controller
 
         return $this->streamCsv(
             'consignment-report.csv',
-            ['Sold at', 'Partner', 'Product', 'Quantity', 'Unit price', 'Line total', 'Payable'],
+            ['Sold at', 'Partner', 'Product', 'Quantity', 'Returned', 'Unit price', 'Line total', 'Payable'],
             $rows->map(fn (ConsignmentSale $sale) => [
                 $sale->sold_at->format('Y-m-d H:i'),
                 $sale->partner?->name ?? '',
                 $sale->product->name,
                 number_format((float) $sale->quantity, 2),
+                number_format((float) $sale->refunded_quantity, 2),
                 number_format((float) $sale->unit_price, 2),
-                number_format((float) $sale->line_total, 2),
-                number_format((float) $sale->payable_amount, 2),
+                number_format($sale->netLineTotal(), 2),
+                number_format($sale->netPayable(), 2),
             ])
         );
     }
@@ -343,7 +378,7 @@ class ReportController extends Controller
 
         $partners = ConsignmentPartner::orderBy('name')->get()->map(fn (ConsignmentPartner $partner) => [
             'name' => $partner->name,
-            'soldPayable' => (float) $partner->sales()->sum('payable_amount'),
+            'soldPayable' => ConsignmentStockService::netPayable($partner),
             'adjustments' => (float) $partner->adjustments()->sum('value'),
             'settled' => (float) $partner->settlements()->sum('amount'),
             'balanceDue' => ConsignmentStockService::balanceDue($partner),

@@ -5,18 +5,25 @@
 @section('subheading', 'History of every completed transaction.')
 
 @section('content')
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div class="rounded-xl border border-gray-200 bg-white p-5">
-            <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Total revenue</p>
+            <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Total sales</p>
             <p class="mt-1 text-2xl font-bold text-gray-900">₱{{ number_format($totalRevenue, 2) }}</p>
+            <p class="mt-1 text-xs text-gray-400">gross receipts incl. consignment &middot; ₱{{ number_format($avgSale, 2) }} avg. sale</p>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-5">
+            <p class="text-xs font-medium uppercase tracking-wide text-emerald-600">Store earned revenue</p>
+            <p class="mt-1 text-2xl font-bold text-emerald-700">₱{{ number_format($earnedRevenue, 2) }}</p>
+            <p class="mt-1 text-xs text-gray-400">after {{ number_format($consignmentPayable, 2) }} partner payable and {{ number_format($refundedTotal, 2) }} refunded</p>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-5">
+            <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Partner payables</p>
+            <p class="mt-1 text-2xl font-bold text-gray-900">₱{{ number_format($consignmentPayable, 2) }}</p>
         </div>
         <div class="rounded-xl border border-gray-200 bg-white p-5">
             <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Items sold</p>
             <p class="mt-1 text-2xl font-bold text-gray-900">{{ $itemsSold }}</p>
-        </div>
-        <div class="rounded-xl border border-gray-200 bg-white p-5">
-            <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Avg. sale</p>
-            <p class="mt-1 text-2xl font-bold text-gray-900">₱{{ number_format($avgSale, 2) }}</p>
+            <p class="mt-1 text-xs text-gray-400">{{ number_format($unitsReturned, 2) }} units returned</p>
         </div>
     </div>
 
@@ -92,8 +99,16 @@
                                                     </thead>
                                                     <tbody class="divide-y divide-gray-100">
                                                         @forelse ($sale->items as $item)
+                                                            @php
+                                                                $itemRefunded = $sale->refunds->where('sale_item_id', $item->id)->sum('quantity');
+                                                            @endphp
                                                             <tr>
-                                                                <td class="py-2.5 font-medium text-gray-900">{{ $item->product?->name ?? 'Unknown product' }}</td>
+                                                                <td class="py-2.5 font-medium text-gray-900">
+                                                                    {{ $item->product?->name ?? 'Unknown product' }}
+                                                                    @if ($itemRefunded > 0)
+                                                                        <span class="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">{{ $itemRefunded }} returned</span>
+                                                                    @endif
+                                                                </td>
                                                                 <td class="py-2.5 text-center text-gray-700">
                                                                     {{ rtrim(rtrim(number_format($item->quantity, 2), '0'), '.') }} {{ $item->product?->unit }}
                                                                 </td>
@@ -139,6 +154,7 @@
 
         <div class="rounded-xl border border-gray-200 bg-white p-5">
             <h2 class="font-semibold text-gray-900">Top products</h2>
+            <p class="mt-1 text-xs text-gray-500">by store earned revenue</p>
 
             <ul class="mt-4 space-y-3">
                 @forelse ($topProducts as $product)

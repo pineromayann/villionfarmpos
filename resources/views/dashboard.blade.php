@@ -12,13 +12,14 @@
 @endsection
 
 @section('content')
-    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div class="rounded-xl border border-gray-200 bg-white p-5">
             <div class="flex items-center justify-between">
                 <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Revenue today</p>
                 <x-icon name="peso" class="h-4 w-4 text-gray-400" />
             </div>
             <p class="mt-2 text-2xl font-bold text-gray-900">₱{{ number_format($revenueToday, 2) }}</p>
+            <p class="mt-1 text-xs text-gray-400">gross receipts</p>
         </div>
 
         <div class="rounded-xl border border-gray-200 bg-white p-5">
@@ -27,6 +28,25 @@
                 <x-icon name="trending-up" class="h-4 w-4 text-gray-400" />
             </div>
             <p class="mt-2 text-2xl font-bold text-gray-900">₱{{ number_format($totalRevenue, 2) }}</p>
+            <p class="mt-1 text-xs text-gray-400">all-time gross receipts</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-5">
+            <div class="flex items-center justify-between">
+                <p class="text-xs font-medium uppercase tracking-wide text-emerald-600">Earned today</p>
+                <x-icon name="trending-up" class="h-4 w-4 text-emerald-600" />
+            </div>
+            <p class="mt-2 text-2xl font-bold text-emerald-700">₱{{ number_format($earnedToday, 2) }}</p>
+            <p class="mt-1 text-xs text-gray-400">store revenue after returns</p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-5">
+            <div class="flex items-center justify-between">
+                <p class="text-xs font-medium uppercase tracking-wide text-emerald-600">Total earned</p>
+                <x-icon name="trending-up" class="h-4 w-4 text-emerald-600" />
+            </div>
+            <p class="mt-2 text-2xl font-bold text-emerald-700">₱{{ number_format($totalEarned, 2) }}</p>
+            <p class="mt-1 text-xs text-gray-400">after {{ number_format($consignmentPayable, 2) }} payable and {{ number_format($refundedTotal, 2) }} refunded</p>
         </div>
 
         <div class="rounded-xl border border-gray-200 bg-white p-5">
@@ -200,7 +220,7 @@
     <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div class="rounded-xl border border-gray-200 bg-white p-5">
             <h2 class="font-semibold text-gray-900">Top-selling products</h2>
-            <p class="text-xs text-gray-500">Last 30 days by revenue</p>
+            <p class="text-xs text-gray-500">Last 30 days by store earned revenue</p>
 
             @if ($topProducts->isNotEmpty())
                 @php $maxRevenue = max((float) $topProducts->max('revenue'), 1); @endphp

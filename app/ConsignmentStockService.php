@@ -41,6 +41,7 @@ class ConsignmentStockService
 
     /**
      * Consigned stock sold for a product (optionally limited to one partner), in base units.
+     * Customer returns are netted out so returned goods count back as on-hand.
      */
     public static function soldBase(Product $product, ?ConsignmentPartner $partner = null): float
     {
@@ -49,9 +50,9 @@ class ConsignmentStockService
         return ConsignmentSale::query()
             ->where('product_id', $product->id)
             ->when($partner !== null, fn ($query) => $query->where('partner_id', $partner->id))
-            ->select(['quantity', 'unit_id'])
+            ->select(['quantity', 'refunded_quantity', 'unit_id'])
             ->get()
-            ->sum(fn ($sale) => static::toBase((float) $sale->quantity, $sale->unit_id, $conversions));
+            ->sum(fn ($sale) => static::toBase((float) $sale->quantity - (float) $sale->refunded_quantity, $sale->unit_id, $conversions));
     }
 
     /**
@@ -123,10 +124,11 @@ class ConsignmentStockService
     /**
      * Amount the store still owes a partner (or, if negative, the partner owes
      * the store): payable on sold units + damage/loss write-offs - cash settled.
+     * Payable is net of any customer-returned consigned units.
      */
     public static function balanceDue(ConsignmentPartner $partner): float
     {
-        $soldPayable = (float) ConsignmentSale::where('partner_id', $partner->id)->sum('payable_amount');
+        $soldPayable = static::netPayable($partner);
         $adjustments = (float) ConsignmentAdjustment::where('partner_id', $partner->id)->sum('value');
         $settled = (float) ConsignmentSettlement::where('partner_id', $partner->id)->sum('amount');
 
@@ -138,11 +140,52 @@ class ConsignmentStockService
      */
     public static function totalBalanceDue(): float
     {
-        $soldPayable = (float) ConsignmentSale::sum('payable_amount');
+        $soldPayable = static::netPayable();
         $adjustments = (float) ConsignmentAdjustment::sum('value');
         $settled = (float) ConsignmentSettlement::sum('amount');
 
         return $soldPayable + $adjustments - $settled;
+    }
+
+    /**
+     * Amount still owed to partners for consigned goods sold (net of returns).
+     */
+    public static function netPayable(?ConsignmentPartner $partner = null): float
+    {
+        return (float) ConsignmentSale::query()
+            ->when($partner !== null, fn ($query) => $query->where('partner_id', $partner->id))
+            ->get(['payable_amount', 'refunded_payable'])
+            ->sum(fn (ConsignmentSale $sale) => (float) $sale->payable_amount - (float) $sale->refunded_payable);
+    }
+
+    /**
+     * Retail value of consigned goods sold (net of returns).
+     */
+    public static function netLineTotal(?ConsignmentPartner $partner = null): float
+    {
+        return (float) ConsignmentSale::query()
+            ->when($partner !== null, fn ($query) => $query->where('partner_id', $partner->id))
+            ->get(['line_total', 'refunded_line_total'])
+            ->sum(fn (ConsignmentSale $sale) => (float) $sale->line_total - (float) $sale->refunded_line_total);
+    }
+
+    /**
+     * Consigned units sold (net of returns), in base units.
+     */
+    public static function netQuantitySold(?ConsignmentPartner $partner = null): float
+    {
+        return (float) ConsignmentSale::query()
+            ->when($partner !== null, fn ($query) => $query->where('partner_id', $partner->id))
+            ->get(['quantity', 'refunded_quantity'])
+            ->sum(fn (ConsignmentSale $sale) => (float) $sale->quantity - (float) $sale->refunded_quantity);
+    }
+
+    /**
+     * Farm store commission earned on consigned goods: retail less the partner payable.
+     */
+    public static function commissionEarned(?ConsignmentPartner $partner = null): float
+    {
+        return static::netLineTotal($partner) - static::netPayable($partner);
     }
 
     /**
@@ -159,5 +202,17 @@ class ConsignmentStockService
     private static function toBase(float $quantity, ?int $unitId, array $conversions): float
     {
         return $unitId !== null ? $quantity * ($conversions[$unitId] ?? 1) : $quantity;
+    }
+
+    /**
+     * Convert a quantity in a product's selling unit to its base unit.
+     */
+    public static function toBaseUnits(Product $product, float $quantity, ?int $unitId): float
+    {
+        if ($unitId === null) {
+            return $quantity;
+        }
+
+        return $quantity * (static::conversions($product)[$unitId] ?? 1);
     }
 }

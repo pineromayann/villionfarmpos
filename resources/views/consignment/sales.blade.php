@@ -26,14 +26,24 @@
         <button type="submit" class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Filter</button>
     </form>
 
-    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div class="rounded-xl border border-gray-200 bg-white p-5">
             <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Units sold</p>
             <p class="mt-1 text-2xl font-bold text-gray-900">{{ number_format($unitsSold, 2) }}</p>
+            @if ($totalReturned > 0)
+                <p class="mt-1 text-xs text-gray-400">net of {{ number_format($rows->sum(fn ($sale) => (float) $sale->refunded_quantity), 2) }} returned</p>
+            @endif
         </div>
         <div class="rounded-xl border border-gray-200 bg-white p-5">
             <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Retail value</p>
             <p class="mt-1 text-2xl font-bold text-gray-900">₱{{ number_format($totalRetail, 2) }}</p>
+            @if ($totalReturned > 0)
+                <p class="mt-1 text-xs text-gray-400">₱{{ number_format($totalReturned, 2) }} returned</p>
+            @endif
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-5">
+            <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Store earned</p>
+            <p class="mt-1 text-2xl font-bold text-gray-900">₱{{ number_format($totalEarned, 2) }}</p>
         </div>
         <div class="rounded-xl border border-gray-200 bg-white p-5">
             <p class="text-xs font-medium uppercase tracking-wide text-emerald-600">Payable to partners</p>
@@ -56,19 +66,24 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse ($rows as $sale)
-                    <tr>
+                    <tr @class(['opacity-60' => $sale->isFullyRefunded()])>
                         <td class="px-5 py-3 text-gray-500">{{ $sale->sold_at->format('n/j/Y g:i A') }}</td>
                         <td class="px-5 py-3 font-medium text-gray-900">{{ $sale->partner?->name ?? '—' }}</td>
                         <td class="px-5 py-3 text-gray-700">
                             {{ $sale->product->name }}
+                            @if ($sale->hasRefund())
+                                <span class="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                                    {{ $sale->isFullyRefunded() ? 'fully returned' : number_format($sale->refunded_quantity).' returned' }}
+                                </span>
+                            @endif
                             @if ($sale->sale)
                                 <span class="text-xs text-gray-400">&middot; Sale #{{ $sale->sale->id }}</span>
                             @endif
                         </td>
-                        <td class="px-5 py-3 text-right text-gray-900">{{ rtrim(rtrim(number_format((float) $sale->quantity, 2), '0'), '.') }} {{ $sale->unit?->abbreviation ?? $sale->product->unit }}</td>
+                        <td class="px-5 py-3 text-right text-gray-900">{{ rtrim(rtrim(number_format($sale->remainingQuantity(), 2), '0'), '.') }} {{ $sale->unit?->abbreviation ?? $sale->product->unit }}</td>
                         <td class="px-5 py-3 text-right text-gray-700">₱{{ number_format((float) $sale->unit_price, 2) }}</td>
-                        <td class="px-5 py-3 text-right font-semibold text-gray-900">₱{{ number_format((float) $sale->line_total, 2) }}</td>
-                        <td class="px-5 py-3 text-right text-emerald-700">₱{{ number_format((float) $sale->payable_amount, 2) }}</td>
+                        <td class="px-5 py-3 text-right font-semibold text-gray-900">₱{{ number_format($sale->netLineTotal(), 2) }}</td>
+                        <td class="px-5 py-3 text-right text-emerald-700">₱{{ number_format($sale->netPayable(), 2) }}</td>
                     </tr>
                 @empty
                     <tr>

@@ -125,7 +125,11 @@
                 @forelse ($refunds as $refund)
                     <tr>
                         <td class="px-5 py-3 text-gray-700">{{ $refund->created_at->format('n/j/Y, g:i A') }}</td>
-                        <td class="px-5 py-3 font-medium text-gray-900">{{ $refund->product->name ?? 'Unknown product' }}</td>
+                        <td class="px-5 py-3 font-medium text-gray-900">{{ $refund->product->name ?? 'Unknown product' }}
+                            @if (in_array($refund->sale_item_id, $consignedSaleItemIds, true))
+                                <span class="ml-1 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">consigned</span>
+                            @endif
+                        </td>
                         <td class="px-5 py-3 text-gray-700">#{{ $refund->sale_id }}</td>
                         <td class="px-5 py-3 text-gray-700">
                             {{ rtrim(rtrim(number_format((float) $refund->quantity, 2), '0'), '.') }} {{ $refund->product->unit }}

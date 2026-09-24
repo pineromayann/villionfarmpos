@@ -1,17 +1,14 @@
 <?php
 
-use App\Models\ConsignmentAdjustment;
-use App\Models\ConsignmentPartner;
+use App\ConsignmentStockService;
 use App\Models\ConsignmentSale;
-use App\Models\Product;
-use App\Models\Refund;
 use App\Models\Sale;
-use App\Models\StockMovement;
+use App\Models\User;
 
 use function Pest\Laravel\post;
 
 beforeEach(function () {
-    $this->actingAs(\App\Models\User::factory()->create());
+    $this->actingAs(User::factory()->create());
 });
 
 test('a consigned sale in a selling unit is stored in base units and converted exactly once', function () {
@@ -92,16 +89,22 @@ test('refunding a consigned sale does not inflate owned stock', function () {
     ])->assertSessionHas('success');
 
     $sale = Sale::orderByDesc('id')->first();
+    $saleItem = $sale->items()->first();
 
     post(route('refunds.store'), [
         'sale_id' => $sale->id,
-        'lines' => json_encode([
-            ['product_id' => $product->id, 'qty' => 3],
-        ]),
-        'reason' => 'damaged',
+        'items' => [
+            ['sale_item_id' => $saleItem->id, 'quantity' => 3],
+        ],
+        'note' => 'damaged',
     ])->assertStatus(302);
 
     expect((float) $product->fresh()->stock)->toEqual(48.0);
     expect(ConsignmentStockService::remainingBase($product, $partner))->toEqual(10.0);
-    expect(ConsignmentSale::count())->toBe(?idc);
+
+    $consignmentSale = ConsignmentSale::sole();
+    expect((float) $consignmentSale->refunded_quantity)->toEqual(3.0);
+    expect((float) $consignmentSale->refunded_line_total)->toEqual((float) $consignmentSale->line_total);
+    expect($consignmentSale->netPayable())->toEqual(0.0);
+    expect($consignmentSale->isFullyRefunded())->toBeTrue();
 });

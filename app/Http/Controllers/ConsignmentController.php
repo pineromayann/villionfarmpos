@@ -211,12 +211,17 @@ class ConsignmentController extends Controller
             ->latest('sold_at')
             ->get();
 
+        $totalRetail = $rows->sum(fn (ConsignmentSale $sale) => $sale->netLineTotal());
+        $totalPayable = $rows->sum(fn (ConsignmentSale $sale) => $sale->netPayable());
+
         return view('consignment.sales', [
             'rows' => $rows,
             'partners' => ConsignmentPartner::orderBy('name')->get(),
-            'totalRetail' => $rows->sum('line_total'),
-            'totalPayable' => $rows->sum('payable_amount'),
-            'unitsSold' => $rows->sum('quantity'),
+            'totalRetail' => $totalRetail,
+            'totalPayable' => $totalPayable,
+            'totalEarned' => $totalRetail - $totalPayable,
+            'totalReturned' => $rows->sum(fn (ConsignmentSale $sale) => (float) $sale->refunded_line_total),
+            'unitsSold' => $rows->sum(fn (ConsignmentSale $sale) => $sale->remainingQuantity()),
             'filters' => $validated,
         ]);
     }
@@ -226,7 +231,7 @@ class ConsignmentController extends Controller
         $partners = ConsignmentPartner::orderBy('name')->get()->map(fn (ConsignmentPartner $partner) => [
             'partner' => $partner,
             'consignments' => $partner->consignments()->count(),
-            'soldPayable' => (float) $partner->sales()->sum('payable_amount'),
+            'soldPayable' => ConsignmentStockService::netPayable($partner),
             'adjustments' => (float) $partner->adjustments()->sum('value'),
             'settled' => (float) $partner->settlements()->sum('amount'),
             'balanceDue' => ConsignmentStockService::balanceDue($partner),
@@ -286,11 +291,12 @@ class ConsignmentController extends Controller
             ->get()
             ->map(fn (ConsignmentSale $sale) => [
                 'date' => $sale->sold_at,
-                'type' => 'sold',
+                'type' => $sale->isFullyRefunded() ? 'refunded' : ($sale->hasRefund() ? 'partially refunded' : 'sold'),
                 'partner' => $sale->partner?->name ?? '—',
                 'label' => $sale->product->name,
-                'detail' => "{$sale->quantity} units at retail ₱".number_format((float) $sale->line_total, 2),
-                'value' => (float) $sale->payable_amount,
+                'detail' => $sale->remainingQuantity().' units at retail ₱'.number_format($sale->netLineTotal(), 2)
+                    .($sale->hasRefund() ? ' &middot; '.$sale->refunded_quantity.' returned' : ''),
+                'value' => $sale->netPayable(),
             ]);
 
         $adjustments = ConsignmentAdjustment::with(['partner', 'product'])

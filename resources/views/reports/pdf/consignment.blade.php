@@ -19,10 +19,18 @@
         <tr>
             <td class="label">Retail value</td>
             <td class="value">{{ number_format($totalRetail, 2) }}</td>
-            <td class="label">Payable to partners</td>
-            <td class="value">{{ number_format($totalPayable, 2) }}</td>
+            <td class="label">Store earned</td>
+            <td class="value">{{ number_format($totalEarned, 2) }}</td>
             <td class="label">Balance due</td>
             <td class="value">{{ number_format($totalDue, 2) }}</td>
+        </tr>
+        <tr>
+            <td class="label">Returned</td>
+            <td class="value">{{ number_format($totalReturned, 2) }}</td>
+            <td class="label">Payable to partners</td>
+            <td class="value">{{ number_format($totalPayable, 2) }}</td>
+            <td></td>
+            <td></td>
         </tr>
     </table>
 
@@ -66,6 +74,7 @@
                 <th>Partner</th>
                 <th>Product</th>
                 <th class="text-right">Qty</th>
+                <th class="text-right">Returned</th>
                 <th class="text-right">Unit price</th>
                 <th class="text-right">Line total</th>
                 <th class="text-right">Payable</th>
@@ -78,13 +87,14 @@
                     <td>{{ $sale->partner?->name ?? '—' }}</td>
                     <td>{{ $sale->product->name }}</td>
                     <td class="text-right">{{ $sale->quantity }}</td>
+                    <td class="text-right">{{ $sale->refunded_quantity > 0 ? $sale->refunded_quantity : '' }}</td>
                     <td class="text-right">{{ number_format($sale->unit_price, 2) }}</td>
-                    <td class="text-right">{{ number_format($sale->line_total, 2) }}</td>
-                    <td class="text-right">{{ number_format($sale->payable_amount, 2) }}</td>
+                    <td class="text-right">{{ number_format($sale->netLineTotal(), 2) }}</td>
+                    <td class="text-right">{{ number_format($sale->netPayable(), 2) }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7">No consignment sales in this range.</td>
+                    <td colspan="8">No consignment sales in this range.</td>
                 </tr>
             @endforelse
         </tbody>

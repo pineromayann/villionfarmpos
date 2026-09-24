@@ -16,8 +16,16 @@
         <tr>
             <td class="label">Total revenue</td>
             <td class="value">{{ number_format($totalRevenue, 2) }}</td>
+            <td class="label">Store earned</td>
+            <td class="value">{{ number_format($earnedRevenue, 2) }}</td>
             <td class="label">Items sold</td>
             <td class="value">{{ (int) $itemsSold }}</td>
+        </tr>
+        <tr>
+            <td class="label">Partner payable</td>
+            <td class="value">{{ number_format($consignmentPayable, 2) }}</td>
+            <td class="label">Refunded</td>
+            <td class="value">{{ number_format($refundedTotal, 2) }}</td>
             <td class="label">Transactions</td>
             <td class="value">{{ $sales->count() }}</td>
         </tr>
