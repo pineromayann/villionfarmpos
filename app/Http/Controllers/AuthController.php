@@ -26,7 +26,7 @@ class AuthController extends Controller
         ]);
 
         try {
-            $authenticated = Auth::attempt($credentials, $request->boolean('remember'));
+            $authenticated = Auth::attempt($credentials);
         } catch (Throwable $e) {
             Log::warning('Login attempt failed due to an unexpected error.', [
                 'email' => $credentials['email'],

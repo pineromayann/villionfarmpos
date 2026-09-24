@@ -100,27 +100,6 @@
             margin-top: .3rem;
         }
 
-        .remember-row {
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-            margin-bottom: 1.4rem;
-        }
-
-        .remember-row input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: #111827;
-            cursor: pointer;
-        }
-
-        .remember-row label {
-            margin: 0;
-            font-weight: 400;
-            color: #6b7280;
-            cursor: pointer;
-        }
-
         .btn {
             width: 100%;
             padding: .75rem;
@@ -240,11 +219,6 @@
                 @error('password')
                     <p class="error-text">{{ $message }}</p>
                 @enderror
-            </div>
-
-            <div class="remember-row">
-                <input type="checkbox" id="remember" name="remember">
-                <label for="remember">Remember me</label>
             </div>
 
             <button type="submit" class="btn">Sign in</button>
