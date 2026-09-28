@@ -64,6 +64,16 @@
             line-height: 1.5;
         }
 
+        .hint code {
+            font-family: Consolas, 'Courier New', monospace;
+            font-size: .85rem;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: .3rem;
+            padding: .1rem .35rem;
+            color: #111827;
+        }
+
         .btn {
             display: inline-block;
             margin-top: 1.75rem;

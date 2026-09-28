@@ -1,9 +1,13 @@
 <?php
 
+use App\Backup\RestoreAccess;
+use App\Models\Backup;
 use App\Models\ConsignmentPartner;
 use App\Models\Product;
 use App\Models\Unit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /*
@@ -20,6 +24,11 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
+
+// Integration tests own their database instead of using RefreshDatabase, so
+// they can run migrations, wipe the schema and restore over it themselves.
+pest()->extend(TestCase::class)
+    ->in('Integration');
 
 /*
 |--------------------------------------------------------------------------
@@ -89,4 +98,85 @@ function consignmentProduct(array $attributes = []): Product
         'terms_30_days' => null,
         ...$attributes,
     ]);
+}
+
+/**
+ * Point the backup system at throwaway locations.
+ *
+ * The destination disk is faked, and the archiver is pointed at a fixture
+ * directory inside the project so it walks real files on the real filesystem,
+ * which is what the glob and path handling has to get right.
+ */
+function useBackupTestingDisk(): void
+{
+    Storage::fake(config('backup.disk', 'local'));
+
+    config([
+        'backup.files' => ['storage/framework/testing/backup-fixtures'],
+        'backup.exclude' => ['**/skip/**', '**/*.log'],
+        'backup.work_directory' => storage_path('framework/testing/backup-work'),
+    ]);
+
+    File::deleteDirectory(storage_path('framework/testing/backup-fixtures'));
+    File::deleteDirectory(storage_path('framework/testing/backup-work'));
+    File::ensureDirectoryExists(storage_path('framework/testing/backup-fixtures/dbjsons'));
+    File::ensureDirectoryExists(storage_path('framework/testing/backup-fixtures/public/uploads'));
+    File::ensureDirectoryExists(storage_path('framework/testing/backup-fixtures/skip'));
+}
+
+function writeBackupFixture(string $relative, string $contents): string
+{
+    $path = storage_path('framework/testing/backup-fixtures').DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $relative);
+
+    File::ensureDirectoryExists(dirname($path));
+    File::put($path, $contents);
+
+    return $path;
+}
+
+function useRestorableBackups(): void
+{
+    app(RestoreAccess::class)->set(true);
+}
+
+function backupDisk(): string
+{
+    return (string) config('backup.disk', 'local');
+}
+
+/**
+ * Copy a stored backup artifact to a temporary path and list its zip entries.
+ *
+ * @return array<int, string>
+ */
+function zipEntriesOf(Backup $backup): array
+{
+    $path = tempnam(sys_get_temp_dir(), 'vfpz-');
+    file_put_contents($path, Storage::disk($backup->disk)->get($backup->path));
+
+    $zip = new ZipArchive;
+
+    if ($zip->open($path) !== true) {
+        return [];
+    }
+
+    $entries = [];
+
+    for ($index = 0; $index < $zip->numFiles; $index++) {
+        $entries[] = (string) $zip->getNameIndex($index);
+    }
+
+    $zip->close();
+    unlink($path);
+
+    return $entries;
+}
+
+function decompress(string $path): string
+{
+    $contents = gzdecode((string) file_get_contents($path));
+
+    expect($contents)->toBeString();
+
+    return $contents;
 }

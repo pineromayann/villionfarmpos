@@ -9,24 +9,25 @@
 --      (Or use the "Import" tab and upload this file.)
 --   3. THIS SCRIPT IS IDEMPOTENT: tables use CREATE TABLE IF NOT EXISTS and
 --      column alterations are guarded, so re-running it is safe.
---   4. After running this, THREE migrations must still be applied from the
+--   4. After running this, migrations must still be applied from the
 --      application itself: run `php artisan migrate --force` in the cPanel
 --      terminal. Those apply:
 --        - the UOM migration (unit_types/units/product_units, products.base_unit_id,
 --          sale_items.unit_id, stock_movements.unit_id, drops products.unit,
 --          and seeds the unit catalog + backfills existing products),
 --        - the procurement migration (purchase_orders / purchase_order_items), and
---        - the consignment migration (consignment_partners / consignments /
---          consignment_items / consignment_sales / consignment_adjustments /
---          consignment_settlements).
+--        - the consignment refund-tracking migration (consignment_sales.sale_item_id
+--          plus the refunded_* columns).
 --      The procurement tables are intentionally left out of this script:
 --      purchase_order_items has a foreign key to units, which only exists once
 --      the UOM migration has run, so Laravel itself must create them. The
 --      consignment tables ARE created here (their unit_id columns have no
 --      foreign key), and the migration is recorded in the `migrations` table
---      so Laravel skips re-creating them.
+--      so Laravel skips re-creating them. That means the live database has no
+--      foreign key from consignment_items/consignment_sales to units; the
+--      application validates every unit_id it writes instead.
 --      This script records the migrations it DID apply in the `migrations`
---      table (see the bottom of the file), so step 4 only runs the three above.
+--      table (see the bottom of the file), so step 4 only runs the ones above.
 --   5. If this is a BRAND-NEW/empty database, you must also create an initial
 --      login user + product catalog: run `php artisan db:seed --force` after
 --      `php artisan migrate --force`. Do NOT run the seeders on a database
@@ -76,19 +77,20 @@ CREATE TABLE IF NOT EXISTS sessions (
 -- ----------------------------------------------------------------------------
 -- cache, cache_locks
 -- ----------------------------------------------------------------------------
+-- `key` and `value` are reserved words in MySQL 8, so they have to be quoted.
 CREATE TABLE IF NOT EXISTS cache (
-    key VARCHAR(255) NOT NULL,
-    value MEDIUMTEXT NOT NULL,
+    `key` VARCHAR(255) NOT NULL,
+    `value` MEDIUMTEXT NOT NULL,
     expiration BIGINT NOT NULL,
-    PRIMARY KEY (key),
+    PRIMARY KEY (`key`),
     KEY cache_expiration_index (expiration)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS cache_locks (
-    key VARCHAR(255) NOT NULL,
-    owner VARCHAR(255) NOT NULL,
+    `key` VARCHAR(255) NOT NULL,
+    `owner` VARCHAR(255) NOT NULL,
     expiration BIGINT NOT NULL,
-    PRIMARY KEY (key),
+    PRIMARY KEY (`key`),
     KEY cache_locks_expiration_index (expiration)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -451,6 +453,110 @@ CREATE TABLE IF NOT EXISTS consignment_settlements (
         FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ----------------------------------------------------------------------------
+-- users.role: coarse role used for authorization (see config/permissions.php).
+-- The lowest existing user is promoted to administrator so nobody is locked
+-- out of the Backups screen after this script runs.
+-- ----------------------------------------------------------------------------
+SET @db = NULL, @col = NULL, @sql = NULL;
+SET @db = DATABASE();
+
+SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'users' AND COLUMN_NAME = 'role');
+SET @sql = IF(@col = 0,
+    'ALTER TABLE users ADD COLUMN role VARCHAR(255) NOT NULL DEFAULT ''cashier'' AFTER email, ADD KEY users_role_index (role)',
+    'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- Promote the lowest existing user only when nobody is an administrator yet.
+-- IF() is used rather than a SELECT because a subquery with no matching row
+-- yields NULL, and PREPARE cannot parse a NULL statement. The extra derived
+-- table works around MySQL refusing to select from the table being updated.
+SET @needs_admin = (SELECT COUNT(*) FROM users WHERE role = 'administrator') = 0;
+SET @sql = IF(@needs_admin = 1,
+    'UPDATE users SET role = ''administrator'' WHERE id = (SELECT lowest FROM (SELECT MIN(id) AS lowest FROM users) AS candidates)',
+    'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- ----------------------------------------------------------------------------
+-- backups: one row per snapshot, with the storage coordinates needed to
+-- download or restore it later. The artifact itself lives on the private
+-- backup disk, never in /public.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS backups (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    filename VARCHAR(255) NOT NULL,
+    disk VARCHAR(255) NOT NULL,
+    path VARCHAR(255) NOT NULL,
+    type VARCHAR(255) NOT NULL,
+    size BIGINT UNSIGNED NULL DEFAULT NULL,
+    checksum VARCHAR(255) NULL DEFAULT NULL,
+    status VARCHAR(255) NOT NULL DEFAULT 'pending',
+    frequency VARCHAR(255) NULL DEFAULT NULL,
+    database_name VARCHAR(255) NULL DEFAULT NULL,
+    included_paths TEXT NULL,
+    snapshot JSON NULL,
+    created_by BIGINT UNSIGNED NULL DEFAULT NULL,
+    started_at TIMESTAMP NULL DEFAULT NULL,
+    completed_at TIMESTAMP NULL DEFAULT NULL,
+    error_message TEXT NULL,
+    created_at TIMESTAMP NULL DEFAULT NULL,
+    updated_at TIMESTAMP NULL DEFAULT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY backups_filename_unique (filename),
+    KEY backups_status_index (status),
+    KEY backups_type_index (type),
+    KEY backups_created_at_index (created_at),
+    CONSTRAINT backups_created_by_foreign
+        FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+-- activity_logs: audit trail for backup and restore operations.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id BIGINT UNSIGNED NULL DEFAULT NULL,
+    action VARCHAR(255) NOT NULL,
+    subject_type VARCHAR(255) NULL DEFAULT NULL,
+    subject_id BIGINT UNSIGNED NULL DEFAULT NULL,
+    result VARCHAR(255) NOT NULL DEFAULT 'success',
+    ip_address VARCHAR(45) NULL DEFAULT NULL,
+    user_agent TEXT NULL,
+    context JSON NULL,
+    created_at TIMESTAMP NULL DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY activity_logs_action_index (action),
+    KEY activity_logs_subject_type_subject_id_index (subject_type, subject_id),
+    KEY activity_logs_created_at_index (created_at),
+    CONSTRAINT activity_logs_user_id_foreign
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+-- backup_settings: the single row that holds installation wide backup choices.
+--
+-- restore_enabled is deliberately seeded to 0. Restoring overwrites live POS
+-- and inventory data, so a shop starts with it off and an administrator turns
+-- it on from the Backups screen. Keeping it here rather than in .env means no
+-- terminal and no cleared config cache are ever needed to change it.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS backup_settings (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    restore_enabled TINYINT(1) NOT NULL DEFAULT 0,
+    updated_by BIGINT UNSIGNED NULL DEFAULT NULL,
+    created_at TIMESTAMP NULL DEFAULT NULL,
+    updated_at TIMESTAMP NULL DEFAULT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT backup_settings_updated_by_foreign
+        FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO backup_settings (id, restore_enabled, created_at, updated_at)
+SELECT 1, 0, NOW(), NOW()
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM backup_settings WHERE id = 1);
+
 SET @db = NULL, @col = NULL, @sql = NULL;
 
 -- ============================================================================
@@ -526,5 +632,30 @@ INSERT INTO migrations (migration, batch)
 SELECT '2026_09_23_083008_create_consignment_tables', @next_batch
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM migrations WHERE migration = '2026_09_23_083008_create_consignment_tables');
+
+INSERT INTO migrations (migration, batch)
+SELECT '2026_09_28_043809_add_role_to_users_table', @next_batch
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM migrations WHERE migration = '2026_09_28_043809_add_role_to_users_table');
+
+INSERT INTO migrations (migration, batch)
+SELECT '2026_09_28_043810_create_backups_table', @next_batch
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM migrations WHERE migration = '2026_09_28_043810_create_backups_table');
+
+INSERT INTO migrations (migration, batch)
+SELECT '2026_09_28_043810_create_activity_logs_table', @next_batch
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM migrations WHERE migration = '2026_09_28_043810_create_activity_logs_table');
+
+INSERT INTO migrations (migration, batch)
+SELECT '2026_09_28_051921_add_snapshot_metadata_to_backups_table', @next_batch
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM migrations WHERE migration = '2026_09_28_051921_add_snapshot_metadata_to_backups_table');
+
+INSERT INTO migrations (migration, batch)
+SELECT '2026_09_28_060000_create_backup_settings_table', @next_batch
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM migrations WHERE migration = '2026_09_28_060000_create_backup_settings_table');
 
 SET @next_batch = NULL;

@@ -140,3 +140,60 @@ test('a sale requires at least one cart item', function () {
 
     $response->assertSessionHasErrors('cart');
 });
+
+test('the pos page offers a typed quantity field beside the add and deduct buttons', function () {
+    Product::factory()->create(['name' => 'KARATE 500ml', 'category' => 'insecticide']);
+
+    $response = $this->get(route('pos.index'));
+
+    $response->assertSee('x-model="item.qtyInput"', false);
+    $response->assertSee('inputmode="decimal"', false);
+    $response->assertSee('stepQty(item, 1, index)', false);
+    $response->assertSee('stepQty(item, -1, index)', false);
+    $response->assertDontSee('<span x-text="item.qty">', false);
+});
+
+test('a fractional quantity can be sold and leaves a matching fraction in stock', function () {
+    $product = Product::factory()->create([
+        'price' => 10,
+        'cost_price' => null,
+        'dealers_price_cod' => null,
+        'terms_30_days' => null,
+        'stock' => 20,
+    ]);
+
+    $this->post(route('pos.store'), [
+        'payment_method' => 'cash',
+        'cart' => json_encode([
+            ['product_id' => $product->id, 'qty' => 2.5],
+        ]),
+    ])->assertRedirect(route('pos.index'));
+
+    $this->assertDatabaseHas('sale_items', [
+        'product_id' => $product->id,
+        'quantity' => 2.5,
+        'line_total' => 25,
+    ]);
+
+    expect($product->fresh()->stock)->toEqual(17.5);
+});
+
+test('a quantity below the smallest saleable amount is rejected', function () {
+    $product = Product::factory()->create([
+        'price' => 10,
+        'cost_price' => null,
+        'dealers_price_cod' => null,
+        'terms_30_days' => null,
+        'stock' => 20,
+    ]);
+
+    $this->post(route('pos.store'), [
+        'payment_method' => 'cash',
+        'cart' => json_encode([
+            ['product_id' => $product->id, 'qty' => 0],
+        ]),
+    ])->assertSessionHasErrors('cart.0.qty');
+
+    expect(Sale::count())->toBe(0);
+    expect($product->fresh()->stock)->toEqual(20);
+});

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\ConsignmentController;
 use App\Http\Controllers\ConsignmentPartnerController;
 use App\Http\Controllers\CustomerController;
@@ -80,4 +81,33 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/purchases/csv', [ReportController::class, 'purchasesCsv'])->name('reports.purchases.csv');
     Route::get('/reports/consignment/pdf', [ReportController::class, 'consignmentPdf'])->name('reports.consignment.pdf');
     Route::get('/reports/consignment/csv', [ReportController::class, 'consignmentCsv'])->name('reports.consignment.csv');
+
+    Route::middleware('permission:backup.view')->group(function () {
+        Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
+        Route::get('/backups/{backup}', [BackupController::class, 'show'])->name('backups.show');
+    });
+
+    Route::post('/backups', [BackupController::class, 'store'])
+        ->middleware('permission:backup.create')
+        ->name('backups.store');
+
+    Route::get('/backups/{backup}/download', [BackupController::class, 'download'])
+        ->middleware('permission:backup.download')
+        ->name('backups.download');
+
+    Route::delete('/backups/{backup}', [BackupController::class, 'destroy'])
+        ->middleware('permission:backup.delete')
+        ->name('backups.destroy');
+
+    Route::get('/backups/{backup}/restore', [BackupController::class, 'confirmRestore'])
+        ->middleware('permission:backup.restore')
+        ->name('backups.restore.confirm');
+
+    Route::post('/backups/{backup}/restore', [BackupController::class, 'restore'])
+        ->middleware('permission:backup.restore')
+        ->name('backups.restore');
+
+    Route::post('/backups/restore-access', [BackupController::class, 'updateRestoreAccess'])
+        ->middleware('permission:backup.restore')
+        ->name('backups.restore.access');
 });

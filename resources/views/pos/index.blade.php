@@ -13,6 +13,42 @@
             customerId: '',
             search: '',
             category: 'all',
+            minQty: 0.01,
+            qtyPrecision: 3,
+            formatQty(value) {
+                const rounded = Number(Number(value).toFixed(this.qtyPrecision));
+                return String(rounded);
+            },
+            maxQty(item) {
+                return Math.max(this.minQty, this.limit(item));
+            },
+            setQty(item, raw) {
+                const parsed = parseFloat(raw);
+                if (Number.isNaN(parsed)) {
+                    item.qtyInput = this.formatQty(item.qty);
+                    return;
+                }
+                const clamped = Math.min(this.maxQty(item), Math.max(this.minQty, parsed));
+                item.qty = Number(clamped.toFixed(this.qtyPrecision));
+                item.qtyInput = this.formatQty(item.qty);
+            },
+            liveQty(item, raw) {
+                // Update the totals while typing, but leave the field text alone
+                // so clearing it or typing a partial number is not fought with.
+                const parsed = parseFloat(raw);
+                if (Number.isNaN(parsed) || parsed < this.minQty) {
+                    return;
+                }
+                item.qty = Number(Math.min(this.maxQty(item), parsed).toFixed(this.qtyPrecision));
+            },
+            stepQty(item, delta, index) {
+                const next = item.qty + delta;
+                if (delta < 0 && next < this.minQty) {
+                    this.removeFromCart(index);
+                    return;
+                }
+                this.setQty(item, next);
+            },
             defaultUnit(product) {
                 const units = product.sellingUnits?.length ? product.sellingUnits : [{ id: null, abbreviation: product.unit || '', conversion: 1, base: true }];
                 return units.find((u) => u.base) || units[0];
@@ -22,7 +58,10 @@
                 const conversion = Number(unit.conversion) || 1;
                 const existing = this.cart.find((i) => i.id === product.id && i.partnerId === '');
                 if (existing) {
-                    if (existing.qty + 1 <= this.limit(existing)) existing.qty++;
+                    if (existing.qty + 1 <= this.limit(existing)) {
+                        existing.qty++;
+                        existing.qtyInput = this.formatQty(existing.qty);
+                    }
                 } else if (product.stock > 0 || product.consignedPartners?.length) {
                     this.cart.push({
                         id: product.id,
@@ -30,6 +69,7 @@
                         price: product.price,
                         stock: product.stock,
                         qty: 1,
+                        qtyInput: '1',
                         unitId: unit.id ?? null,
                         conversion,
                         unit: unit.abbreviation,
@@ -42,14 +82,13 @@
             limit(item) {
                 if (item.partnerId) {
                     const partner = item.partners.find((p) => Number(p.id) === Number(item.partnerId));
-                    return partner ? Math.max(0, Math.floor(partner.remaining / item.conversion)) : 0;
+                    return partner ? Math.max(0, partner.remaining / item.conversion) : 0;
                 }
-                return Math.floor(item.stock / item.conversion);
+                return Math.max(0, item.stock / item.conversion);
             },
             pickPartner(item, partnerId) {
                 item.partnerId = partnerId ? String(partnerId) : '';
-                const maxQty = Math.max(1, this.limit(item));
-                if (item.qty > maxQty) item.qty = maxQty;
+                this.setQty(item, item.qty);
             },
             lineUnit(item, unitId) {
                 const unit = item.units.find((u) => Number(u.id) === Number(unitId)) || item.units[0];
@@ -57,8 +96,7 @@
                 item.unitId = Number(unit.id) ?? null;
                 item.conversion = Number(unit.conversion) || 1;
                 item.unit = unit.abbreviation;
-                const maxQty = Math.max(1, this.limit(item));
-                if (item.qty > maxQty) item.qty = maxQty;
+                this.setQty(item, item.qty);
             },
             baseQty(item) {
                 return item.qty * item.conversion;
@@ -173,9 +211,21 @@
                                 <div class="min-w-0">
                                     <p class="truncate font-medium text-gray-900" x-text="item.name"></p>
                                     <div class="mt-1 flex items-center gap-1.5 text-gray-500">
-                                        <button type="button" @click="item.qty > 1 ? item.qty-- : removeFromCart(index)" class="rounded border border-gray-200 px-1.5 leading-5 hover:bg-gray-50">-</button>
-                                        <span x-text="item.qty"></span>
-                                        <button type="button" @click="item.qty < limit(item) && item.qty++" class="rounded border border-gray-200 px-1.5 leading-5 hover:bg-gray-50">+</button>
+                                        <button type="button" @click="stepQty(item, -1, index)" class="rounded border border-gray-200 px-1.5 leading-5 hover:bg-gray-50">-</button>
+                                        <input
+                                            type="text"
+                                            inputmode="decimal"
+                                            autocomplete="off"
+                                            aria-label="Quantity"
+                                            x-bind:aria-label="'Quantity for ' + item.name"
+                                            x-model="item.qtyInput"
+                                            @input="liveQty(item, $event.target.value)"
+                                            @blur="setQty(item, $event.target.value)"
+                                            @focus="$event.target.select()"
+                                            @keydown.enter.prevent="$event.target.blur()"
+                                            class="w-14 rounded border border-gray-200 px-1 py-0.5 text-center text-xs tabular-nums focus:border-gray-400 focus:outline-none"
+                                        >
+                                        <button type="button" @click="stepQty(item, 1, index)" class="rounded border border-gray-200 px-1.5 leading-5 hover:bg-gray-50">+</button>
                                         <select
                                             @change="lineUnit(item, $event.target.value)"
                                             class="rounded border border-gray-200 px-1.5 py-0.5 text-xs"

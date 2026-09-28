@@ -47,13 +47,19 @@
                     ];
 
                     $consignmentItems = [
-                        ['route' => 'consignment-partners.index', 'pattern' => 'consignment-partners*', 'icon' => 'partners', 'label' => 'Consignment Partners'],
-                        ['route' => 'consignment.receive', 'pattern' => 'consignment.receive*', 'icon' => 'receive', 'label' => 'Receive Consignment'],
-                        ['route' => 'consignment.stock', 'pattern' => 'consignment.stock*', 'icon' => 'consignment-stock', 'label' => 'Consignment Stock'],
-                        ['route' => 'consignment.sales', 'pattern' => 'consignment.sales*', 'icon' => 'consignment-sales', 'label' => 'Consignment Sales'],
-                        ['route' => 'consignment.settlement', 'pattern' => 'consignment.settlement*', 'icon' => 'settlement', 'label' => 'Settlement'],
-                        ['route' => 'consignment.history', 'pattern' => 'consignment.history*', 'icon' => 'history', 'label' => 'Consignment History'],
+                        ['route' => 'consignment-partners.index',   'pattern' => 'consignment-partners*',  'icon' => 'partners',           'label' => 'Consignment Partners'],
+                        ['route' => 'consignment.receive',          'pattern' => 'consignment.receive*',  'icon' => 'receive',            'label' => 'Receive Consignment'],
+                        ['route' => 'consignment.stock',            'pattern' => 'consignment.stock*',    'icon' => 'consignment-stock',   'label' => 'Consignment Stock'],
+                        ['route' => 'consignment.sales',            'pattern' => 'consignment.sales*',    'icon' => 'consignment-sales',   'label' => 'Consignment Sales'],
+                        ['route' => 'consignment.settlement',       'pattern' => 'consignment.settlement*','icon' => 'settlement',         'label' => 'Settlement'],
+                        ['route' => 'consignment.history',          'pattern' => 'consignment.history*',  'icon' => 'history',            'label' => 'Consignment History'],
                     ];
+
+                    $settingsItems = auth()->user()?->hasPermission('backup.view')
+                        ? [
+                            ['route' => 'backups.index', 'pattern' => 'backups*', 'icon' => 'backup', 'label' => 'Backups'],
+                        ]
+                        : [];
                 @endphp
 
                 <ul class="space-y-0.5">
@@ -85,6 +91,24 @@
                         </li>
                     @endforeach
                 </ul>
+
+                @if ($settingsItems)
+                    <p class="mt-5 px-2 pb-2 text-xs font-medium uppercase tracking-wide text-gray-400">Settings</p>
+
+                    <ul class="space-y-0.5">
+                        @foreach ($settingsItems as $item)
+                            <li>
+                                <a
+                                    href="{{ route($item['route']) }}"
+                                    class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm {{ request()->routeIs($item['pattern']) ? 'bg-gray-100 font-medium text-gray-900' : 'text-gray-600 hover:bg-gray-50' }}"
+                                >
+                                    <x-icon :name="$item['icon']" class="h-[18px] w-[18px]" />
+                                    {{ $item['label'] }}
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
             </nav>
 
             <div class="mt-auto border-t border-gray-200 p-3">
