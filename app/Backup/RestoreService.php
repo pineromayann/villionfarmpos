@@ -40,6 +40,8 @@ class RestoreService
         protected FileArchiver $archiver,
         protected BinaryLocator $locator,
         protected RestoreAccess $access,
+        protected DiskSpace $space,
+        protected PrivateDefaultsFile $defaults,
     ) {
         //
     }
@@ -72,6 +74,11 @@ class RestoreService
         try {
             $this->validate($backup);
             $this->archiver->ensureDirectoryExists($workDirectory);
+
+            // Checked before maintenance mode is entered. A restore that
+            // cannot possibly fit is reported with the site still running,
+            // rather than taking the site down first and failing afterwards.
+            $this->space->assertRoomFor('a restore');
 
             ActivityLogger::record(ActivityLog::ACTION_RESTORE_STARTED, $backup, [
                 'user' => $user,
@@ -472,7 +479,7 @@ class RestoreService
         }
 
         $binary = $this->locator->findOrFail('mysql', 'database restores');
-        $defaultsFile = $this->writeDefaultsFile($config);
+        $defaultsFile = $this->defaults->write($config, 'vfpr-');
         $handle = @fopen($sqlPath, 'rb');
 
         $command = [$binary, "--defaults-extra-file={$defaultsFile}", '--default-character-set=utf8mb4', '--binary-mode'];
@@ -500,7 +507,7 @@ class RestoreService
                 fclose($handle);
             }
 
-            @unlink($defaultsFile);
+            $this->defaults->remove($defaultsFile);
         }
 
         if (! $process->isSuccessful()) {
@@ -509,35 +516,6 @@ class RestoreService
                 .(trim($process->getErrorOutput()) ?: 'no error output')
             ));
         }
-    }
-
-    /**
-     * Write a private defaults file carrying the database credentials.
-     *
-     * @param  array<string, mixed>  $config
-     */
-    protected function writeDefaultsFile(array $config): string
-    {
-        $path = tempnam(sys_get_temp_dir(), 'vfpr-');
-
-        if ($path === false) {
-            throw new BackupException('Unable to create a temporary file for the database credentials.');
-        }
-
-        $contents = "[client]\n";
-
-        if (($config['username'] ?? '') !== '') {
-            $contents .= 'user='.$config['username']."\n";
-        }
-
-        if (($config['password'] ?? '') !== '') {
-            $contents .= 'password='.str_replace(["\r", "\n", '"'], ['', '', '\\"'], $config['password'])."\n";
-        }
-
-        file_put_contents($path, $contents);
-        @chmod($path, 0600);
-
-        return $path;
     }
 
     /**

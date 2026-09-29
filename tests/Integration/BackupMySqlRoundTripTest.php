@@ -3,8 +3,10 @@
 use App\Backup\BackupException;
 use App\Backup\BackupService;
 use App\Backup\BinaryLocator;
+use App\Backup\DiskSpace;
 use App\Backup\FileArchiver;
 use App\Backup\NativeMysqlSnapshot;
+use App\Backup\PrivateDefaultsFile;
 use App\Backup\RestoreAccess;
 use App\Backup\RestoreService;
 use App\Models\ActivityLog;
@@ -427,7 +429,7 @@ test('a cleanup failure after a successful restore still brings the site back', 
 
     // Deleting the temp directory is the last thing that happens, and it must
     // never be able to strand a successfully restored site behind a 503.
-    $restorer = new class(app(BackupService::class), app(FileArchiver::class), app(BinaryLocator::class), app(RestoreAccess::class)) extends RestoreService
+    $restorer = new class(app(BackupService::class), app(FileArchiver::class), app(BinaryLocator::class), app(RestoreAccess::class), app(DiskSpace::class), app(PrivateDefaultsFile::class)) extends RestoreService
     {
         protected function deleteDirectory(string $directory): void
         {

@@ -26,8 +26,9 @@ class MySqlDumpSnapshot implements DatabaseSnapshot
     public function __construct(
         protected BinaryLocator $locator,
         protected array $excluded = [],
+        protected ?PrivateDefaultsFile $defaults = null,
     ) {
-        //
+        $this->defaults ??= app(PrivateDefaultsFile::class);
     }
 
     /**
@@ -39,11 +40,11 @@ class MySqlDumpSnapshot implements DatabaseSnapshot
         $binary = $this->locator->findOrFail('mysqldump', 'database backups');
         $tables = $this->includedTables();
 
-        $defaultsFile = $this->writeDefaultsFile($config);
+        $defaultsFile = $this->defaults->write($config, 'vfpw-');
         $handle = @gzopen($target, 'wb9');
 
         if ($handle === false) {
-            @unlink($defaultsFile);
+            $this->defaults->remove($defaultsFile);
 
             throw new BackupException("Unable to open the dump file for writing at [{$target}].");
         }
@@ -73,7 +74,7 @@ class MySqlDumpSnapshot implements DatabaseSnapshot
             $failure = $e->getMessage();
         } finally {
             gzclose($handle);
-            @unlink($defaultsFile);
+            $this->defaults->remove($defaultsFile);
         }
 
         if ($failure !== null) {
@@ -164,38 +165,5 @@ class MySqlDumpSnapshot implements DatabaseSnapshot
         }
 
         return (new Process($command, base_path()))->setTimeout((int) config('backup.timeout', 3600));
-    }
-
-    /**
-     * Write a private defaults file carrying the database credentials.
-     *
-     * The user is always written, even when the account is passwordless, so
-     * the dump never silently connects as a different account.
-     *
-     * @param  array<string, mixed>  $config
-     * @return string Absolute path of the created file.
-     */
-    protected function writeDefaultsFile(array $config): string
-    {
-        $path = tempnam(sys_get_temp_dir(), 'vfpw-');
-
-        if ($path === false) {
-            throw new BackupException('Unable to create a temporary file for the database credentials.');
-        }
-
-        $contents = "[client]\n";
-
-        if (($config['username'] ?? '') !== '') {
-            $contents .= 'user='.$config['username']."\n";
-        }
-
-        if (($config['password'] ?? '') !== '') {
-            $contents .= 'password='.str_replace(["\r", "\n", '"'], ['', '', '\\"'], $config['password'])."\n";
-        }
-
-        file_put_contents($path, $contents);
-        @chmod($path, 0600);
-
-        return $path;
     }
 }

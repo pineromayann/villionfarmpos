@@ -28,6 +28,7 @@ class BackupService
         protected FileArchiver $archiver,
         protected BinaryLocator $locator,
         protected PrivateDisk $privateDisk,
+        protected DiskSpace $space,
     ) {
         //
     }
@@ -107,6 +108,11 @@ class BackupService
         Log::info('Backup started.', ['backup_id' => $backup->id, 'filename' => $backup->filename]);
 
         try {
+            // Checked before any work begins: a job that runs out of room
+            // half way through leaves a truncated artifact and can take a
+            // shared hosting quota down with it.
+            $this->space->assertRoomFor('a backup');
+
             $this->archiver->ensureDirectoryExists($workDirectory);
 
             $snapshotPath = $workDirectory.DIRECTORY_SEPARATOR.self::SNAPSHOT_ENTRY;
@@ -249,7 +255,7 @@ class BackupService
 
         return match ($driver) {
             'mysql' => $this->locator->find('mysqldump') !== null
-                ? new MySqlDumpSnapshot($this->locator, $excluded)
+                ? new MySqlDumpSnapshot($this->locator, $excluded, app(PrivateDefaultsFile::class))
                 : new NativeMysqlSnapshot($excluded),
             'sqlite' => new SqliteSnapshot,
             default => throw new BackupException("Backups are not supported for the [{$driver}] database driver."),
