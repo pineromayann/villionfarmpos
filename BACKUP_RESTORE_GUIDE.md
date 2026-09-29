@@ -185,9 +185,27 @@ php artisan config:clear
 php artisan backup:doctor
 ```
 
-`updatedb.sql` is for existing installs that predate the backup feature. It adds
-the backup tables and marks the migrations it covers as already run, so `migrate`
-will not try to create them again.
+### Which SQL file to use
+
+| Situation | What to do |
+| --- | --- |
+| **Brand new, empty database** | Import **`schema.sql`** in phpMyAdmin. It builds all 30 tables, records all 20 migrations, and creates the first admin. Nothing else needed. |
+| **Existing database with products or sales** | Run `php artisan migrate --force` from the cPanel Terminal. Do **not** import `schema.sql`. |
+
+`schema.sql` is generated from the project's own migrations and verified to be
+identical to what `php artisan migrate` produces. It never drops or deletes
+anything and is safe to re-run. It creates the first admin only when the `users`
+table is empty, so a re-run cannot reset a live password.
+
+It is deliberately not offered for existing databases. The units-of-measure
+change links every existing product to a unit, which is data rather than
+structure, and only the migration can do that safely. Importing `schema.sql`
+over a populated database would create tables that `migrate` then refuses to
+rebuild, breaking the upgrade.
+
+`updatedb.sql` is the older, narrower script. It adds only the backup tables for
+installs that predate the backup feature and marks the migrations it covers as
+already run. Prefer `migrate` over it.
 
 If the site starts returning **419 Page expired** on any form, run
 `php artisan config:clear`. A stale cached config file is the usual cause.
