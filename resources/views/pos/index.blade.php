@@ -113,7 +113,7 @@
         }"
         class="grid grid-cols-1 gap-6 lg:grid-cols-3"
     >
-        <div class="lg:col-span-2">
+        <div class="order-2 lg:order-1 lg:col-span-2">
             <div class="mb-4 flex flex-wrap gap-2">
                 <button
                     type="button"
@@ -182,7 +182,7 @@
             </div>
         </div>
 
-        <div class="rounded-xl border border-gray-200 bg-white p-5">
+        <div class="order-1 rounded-xl border border-gray-200 bg-white p-5 lg:order-2">
             <h2 class="flex items-center gap-1.5 font-semibold text-gray-900">
                 <x-icon name="receipt" class="h-4 w-4" />
                 Current sale
@@ -200,7 +200,7 @@
                     @endforeach
                 </select>
 
-                <div class="mt-4 min-h-[5rem] rounded-lg border border-dashed border-gray-200">
+                <div class="mt-4 max-h-[18rem] min-h-[5rem] overflow-y-auto rounded-lg border border-dashed border-gray-200 lg:max-h-none lg:overflow-visible">
                     <template x-if="cart.length === 0">
                         <p class="flex h-20 items-center justify-center text-sm text-gray-400">Cart is empty</p>
                     </template>
