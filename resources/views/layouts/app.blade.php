@@ -16,7 +16,7 @@
         ></div>
 
         <aside
-            class="fixed inset-y-0 left-0 z-40 flex w-60 shrink-0 -translate-x-full transform flex-col border-r border-gray-200 bg-white transition-transform duration-200 md:static md:translate-x-0"
+            class="fixed inset-y-0 left-0 z-40 flex h-dvh w-60 shrink-0 -translate-x-full transform flex-col border-r border-gray-200 bg-white transition-transform duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0"
             :class="sidebarOpen && '!translate-x-0'"
         >
             <div class="flex items-center gap-3 px-5 py-5">
@@ -29,7 +29,7 @@
                 </div>
             </div>
 
-            <nav class="px-3 py-2">
+            <nav class="min-h-0 flex-1 overflow-y-auto px-3 py-2">
                 <p class="px-2 pb-2 text-xs font-medium uppercase tracking-wide text-gray-400">Workspace</p>
 
                 @php
