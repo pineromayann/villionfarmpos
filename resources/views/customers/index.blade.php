@@ -22,25 +22,18 @@
             Add customer
         </button>
 
-        <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-            <div @click.outside="open = false" class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-                <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-900">Add customer</h2>
-                    <button @click="open = false" class="text-gray-400 hover:text-gray-600">
-                        <x-icon name="x" class="h-5 w-5" />
-                    </button>
-                </div>
+        <x-modal title="Add customer" state="open">
+            <form id="customer-create-form" method="POST" action="{{ route('customers.store') }}" class="space-y-4">
+                @csrf
+                @include('customers.partials.fields')
+            </form>
 
-                <form method="POST" action="{{ route('customers.store') }}" class="space-y-4">
-                    @csrf
-                    @include('customers.partials.fields')
-
-                    <button type="submit" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
-                        Add customer
-                    </button>
-                </form>
-            </div>
-        </div>
+            <x-slot:footer>
+                <button type="submit" form="customer-create-form" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
+                    Add customer
+                </button>
+            </x-slot:footer>
+        </x-modal>
     </div>
 @endsection
 
@@ -96,26 +89,19 @@
                 </div>
 
                 <template x-teleport="body">
-                    <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-                        <div @click.outside="open = false" class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-                            <div class="mb-4 flex items-center justify-between">
-                                <h2 class="text-lg font-semibold text-gray-900">Edit customer</h2>
-                                <button @click="open = false" class="text-gray-400 hover:text-gray-600">
-                                    <x-icon name="x" class="h-5 w-5" />
-                                </button>
-                            </div>
+                    <x-modal title="Edit customer" state="open">
+                        <form id="customer-edit-form-{{ $customer->id }}" method="POST" action="{{ route('customers.update', $customer) }}" class="space-y-4">
+                            @csrf
+                            @method('PUT')
+                            @include('customers.partials.fields', ['customer' => $customer])
+                        </form>
 
-                            <form method="POST" action="{{ route('customers.update', $customer) }}" class="space-y-4">
-                                @csrf
-                                @method('PUT')
-                                @include('customers.partials.fields', ['customer' => $customer])
-
-                                <button type="submit" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
-                                    Save changes
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                        <x-slot:footer>
+                            <button type="submit" form="customer-edit-form-{{ $customer->id }}" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
+                                Save changes
+                            </button>
+                        </x-slot:footer>
+                    </x-modal>
                 </template>
             </div>
         @empty

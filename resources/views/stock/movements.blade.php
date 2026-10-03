@@ -46,122 +46,108 @@
         </button>
 
         <template x-teleport="body">
-            <div x-show="stockIn" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-                <div @click.outside="stockIn = false" class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-                    <div class="mb-4 flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900">Stock in</h2>
-                        <button @click="stockIn = false" class="text-gray-400 hover:text-gray-600">
-                            <x-icon name="x" class="h-5 w-5" />
-                        </button>
+            <x-modal title="Stock in" state="stockIn">
+                <form id="stock-in-form" method="POST" action="{{ route('stock.in.store') }}" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="product_in">Product</label>
+                        <select name="product_id" id="product_in" x-model="selectedProductId" @change="pickProduct()" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                            <option value="">Select product</option>
+                            <template x-for="product in products" :key="product.id">
+                                <option :value="String(product.id)" x-text="product.name"></option>
+                            </template>
+                        </select>
                     </div>
+                    <p class="text-sm text-gray-600" x-show="selectedProduct">
+                        Adding stock to <span class="font-medium text-gray-900" x-text="selectedProduct.name"></span>.
+                        Currently <span x-text="selectedProduct.stock"></span> <span x-text="selectedProduct.unit"></span>.
+                    </p>
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="quantity_in">Quantity</label>
+                        <input type="number" name="quantity" id="quantity_in" min="0.01" step="0.01" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="unit_in">Unit</label>
+                        <select name="unit_id" id="unit_in" x-model="unitIn" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                            <template x-for="unit in (selectedProduct?.units || [])" :key="unit.id">
+                                <option :value="String(unit.id)" x-text="unit.name + ' (' + unit.abbreviation + ')'"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="unit_cost">Unit cost (₱)</label>
+                        <input type="number" name="unit_cost" id="unit_cost" min="0" step="0.01" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="supplier_id">Supplier</label>
+                        <select name="supplier_id" id="supplier_id" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                            <option value="">No supplier</option>
+                            @foreach ($suppliers as $supplier)
+                                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="reason_in">Reason</label>
+                        <input type="text" name="reason" id="reason_in" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                    </div>
+                </form>
 
-                    <form method="POST" action="{{ route('stock.in.store') }}" class="space-y-4">
-                        @csrf
-                        <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="product_in">Product</label>
-                            <select name="product_id" id="product_in" x-model="selectedProductId" @change="pickProduct()" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                <option value="">Select product</option>
-                                <template x-for="product in products" :key="product.id">
-                                    <option :value="String(product.id)" x-text="product.name"></option>
-                                </template>
-                            </select>
-                        </div>
-                        <p class="text-sm text-gray-600" x-show="selectedProduct">
-                            Adding stock to <span class="font-medium text-gray-900" x-text="selectedProduct.name"></span>.
-                            Currently <span x-text="selectedProduct.stock"></span> <span x-text="selectedProduct.unit"></span>.
-                        </p>
-                        <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="quantity_in">Quantity</label>
-                            <input type="number" name="quantity" id="quantity_in" min="0.01" step="0.01" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="unit_in">Unit</label>
-                            <select name="unit_id" id="unit_in" x-model="unitIn" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                <template x-for="unit in (selectedProduct?.units || [])" :key="unit.id">
-                                    <option :value="String(unit.id)" x-text="unit.name + ' (' + unit.abbreviation + ')'"></option>
-                                </template>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="unit_cost">Unit cost (₱)</label>
-                            <input type="number" name="unit_cost" id="unit_cost" min="0" step="0.01" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="supplier_id">Supplier</label>
-                            <select name="supplier_id" id="supplier_id" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                <option value="">No supplier</option>
-                                @foreach ($suppliers as $supplier)
-                                    <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="reason_in">Reason</label>
-                            <input type="text" name="reason" id="reason_in" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                        </div>
-
-                        <button type="submit" class="w-full rounded-lg bg-emerald-700 py-2.5 text-sm font-medium text-white hover:bg-emerald-800">
-                            Add stock
-                        </button>
-                    </form>
-                </div>
-            </div>
+                <x-slot:footer>
+                    <button type="submit" form="stock-in-form" class="w-full rounded-lg bg-emerald-700 py-2.5 text-sm font-medium text-white hover:bg-emerald-800">
+                        Add stock
+                    </button>
+                </x-slot:footer>
+            </x-modal>
         </template>
 
         <template x-teleport="body">
-            <div x-show="stockOut" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-                <div @click.outside="stockOut = false" class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-                    <div class="mb-4 flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900">Stock out</h2>
-                        <button @click="stockOut = false" class="text-gray-400 hover:text-gray-600">
-                            <x-icon name="x" class="h-5 w-5" />
-                        </button>
+            <x-modal title="Stock out" state="stockOut">
+                <form id="stock-out-form" method="POST" action="{{ route('stock.out.store') }}" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="product_out">Product</label>
+                        <select name="product_id" id="product_out" x-model="selectedProductId" @change="pickProduct()" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                            <option value="">Select product</option>
+                            <template x-for="product in products" :key="product.id">
+                                <option :value="String(product.id)" x-text="product.name"></option>
+                            </template>
+                        </select>
                     </div>
+                    <p class="text-sm text-gray-600" x-show="selectedProduct">
+                        Removing stock from <span class="font-medium text-gray-900" x-text="selectedProduct.name"></span>.
+                        <span x-text="selectedProduct.stock"></span> <span x-text="selectedProduct.unit"></span> available.
+                    </p>
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="quantity_out">Quantity</label>
+                        <input type="number" name="quantity" id="quantity_out" min="0.01" step="0.01" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="unit_out">Unit</label>
+                        <select name="unit_id" id="unit_out" x-model="unitOut" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                            <template x-for="unit in (selectedProduct?.units || [])" :key="unit.id">
+                                <option :value="String(unit.id)" x-text="unit.name + ' (' + unit.abbreviation + ')'"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="reason_out">Reason</label>
+                        <select name="reason" id="reason_out" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                            <option value="damaged">Damaged</option>
+                            <option value="expired">Expired</option>
+                            <option value="lost">Lost</option>
+                            <option value="shrinkage">Shrinkage</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </form>
 
-                    <form method="POST" action="{{ route('stock.out.store') }}" class="space-y-4">
-                        @csrf
-                        <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="product_out">Product</label>
-                            <select name="product_id" id="product_out" x-model="selectedProductId" @change="pickProduct()" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                <option value="">Select product</option>
-                                <template x-for="product in products" :key="product.id">
-                                    <option :value="String(product.id)" x-text="product.name"></option>
-                                </template>
-                            </select>
-                        </div>
-                        <p class="text-sm text-gray-600" x-show="selectedProduct">
-                            Removing stock from <span class="font-medium text-gray-900" x-text="selectedProduct.name"></span>.
-                            <span x-text="selectedProduct.stock"></span> <span x-text="selectedProduct.unit"></span> available.
-                        </p>
-                        <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="quantity_out">Quantity</label>
-                            <input type="number" name="quantity" id="quantity_out" min="0.01" step="0.01" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="unit_out">Unit</label>
-                            <select name="unit_id" id="unit_out" x-model="unitOut" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                <template x-for="unit in (selectedProduct?.units || [])" :key="unit.id">
-                                    <option :value="String(unit.id)" x-text="unit.name + ' (' + unit.abbreviation + ')'"></option>
-                                </template>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="reason_out">Reason</label>
-                            <select name="reason" id="reason_out" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                <option value="damaged">Damaged</option>
-                                <option value="expired">Expired</option>
-                                <option value="lost">Lost</option>
-                                <option value="shrinkage">Shrinkage</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="w-full rounded-lg bg-red-700 py-2.5 text-sm font-medium text-white hover:bg-red-800">
-                            Remove stock
-                        </button>
-                    </form>
-                </div>
-            </div>
+                <x-slot:footer>
+                    <button type="submit" form="stock-out-form" class="w-full rounded-lg bg-red-700 py-2.5 text-sm font-medium text-white hover:bg-red-800">
+                        Remove stock
+                    </button>
+                </x-slot:footer>
+            </x-modal>
         </template>
     </div>
 @endsection

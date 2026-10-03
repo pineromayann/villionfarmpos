@@ -31,40 +31,33 @@
         </button>
 
         <template x-teleport="body">
-            <div x-show="receive" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-                <div @click.outside="receive = false" class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
-                    <div class="mb-4 flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900">New consignment</h2>
-                        <button @click="receive = false" class="text-gray-400 hover:text-gray-600">
-                            <x-icon name="x" class="h-5 w-5" />
-                        </button>
+            <x-modal title="New consignment" state="receive" max-width="max-w-2xl">
+                <form id="consignment-receive-form" method="POST" action="{{ route('consignment.receive.store') }}" class="space-y-4" x-data="consignmentForm()">
+                    @csrf
+
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="partner_id">Partner</label>
+                            <select name="partner_id" x-model="form.partner_id" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                                <option value="">Select partner...</option>
+                                @foreach ($partners as $partner)
+                                    <option value="{{ $partner->id }}">{{ $partner->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="received_at">Received date</label>
+                            <input type="date" name="received_at" x-model="form.received_at" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                        </div>
                     </div>
 
-                    <form method="POST" action="{{ route('consignment.receive.store') }}" class="space-y-4" x-data="consignmentForm()">
-                        @csrf
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="note">Note</label>
+                        <input type="text" name="note" x-model="form.note" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                    </div>
 
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="partner_id">Partner</label>
-                                <select name="partner_id" x-model="form.partner_id" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                    <option value="">Select partner...</option>
-                                    @foreach ($partners as $partner)
-                                        <option value="{{ $partner->id }}">{{ $partner->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="received_at">Received date</label>
-                                <input type="date" name="received_at" x-model="form.received_at" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="note">Note</label>
-                            <input type="text" name="note" x-model="form.note" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                        </div>
-
-                        <div class="overflow-x-auto rounded-lg border border-gray-200">
+                    <div class="-mx-1 overflow-x-auto px-1">
+                        <div class="min-w-[38rem] overflow-hidden rounded-lg border border-gray-200">
                             <table class="w-full text-sm">
                                 <thead>
                                     <tr class="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wide text-gray-400">
@@ -102,7 +95,7 @@
                                             </td>
                                             <td class="px-4 py-2 text-right font-semibold text-gray-900" x-text="'₱' + lineTotal(row)"></td>
                                             <td class="px-4 py-2 text-right">
-                                                <button type="button" @click="rows.splice(index, 1)" class="text-gray-400 hover:text-red-600">
+                                                <button type="button" @click="rows.splice(index, 1)" aria-label="Remove line" class="text-gray-400 hover:text-red-600">
                                                     <x-icon name="trash" class="h-4 w-4" />
                                                 </button>
                                             </td>
@@ -118,18 +111,20 @@
                                 </tfoot>
                             </table>
                         </div>
+                    </div>
 
-                        <button type="button" @click="addRow()" class="inline-flex items-center gap-1.5 text-sm font-medium text-sky-600 hover:text-sky-800">
-                            <x-icon name="plus" class="h-4 w-4" />
-                            Add line
-                        </button>
+                    <button type="button" @click="addRow()" class="inline-flex items-center gap-1.5 text-sm font-medium text-sky-600 hover:text-sky-800">
+                        <x-icon name="plus" class="h-4 w-4" />
+                        Add line
+                    </button>
+                </form>
 
-                        <button type="submit" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
-                            Record consignment
-                        </button>
-                    </form>
-                </div>
-            </div>
+                <x-slot:footer>
+                    <button type="submit" form="consignment-receive-form" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
+                        Record consignment
+                    </button>
+                </x-slot:footer>
+            </x-modal>
         </template>
     </div>
 @endsection
@@ -182,47 +177,38 @@
                         </td>
 
                         <template x-teleport="body">
-                            <div x-show="details" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-                                <div @click.outside="details = false" class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
-                                    <div class="mb-4 flex items-center justify-between">
-                                        <h2 class="text-lg font-semibold text-gray-900">CONS #{{ $consignment->id }} &middot; {{ $consignment->partner?->name ?? 'No partner' }}</h2>
-                                        <button @click="details = false" class="text-gray-400 hover:text-gray-600">
-                                            <x-icon name="x" class="h-5 w-5" />
-                                        </button>
-                                    </div>
+                            <x-modal title="CONS #{{ $consignment->id }} &middot; {{ $consignment->partner?->name ?? 'No partner' }}" state="details">
+                                <p class="text-sm text-gray-600">Received {{ $consignment->received_at->format('n/j/Y') }}{{ $consignment->note ? ' &middot; '.$consignment->note : '' }}</p>
 
-                                    <p class="text-sm text-gray-600">Received {{ $consignment->received_at->format('n/j/Y') }}{{ $consignment->note ? ' &middot; '.$consignment->note : '' }}</p>
-
-                                    <div class="mt-4 overflow-x-auto rounded-lg border border-gray-200">
-                                        <table class="w-full text-sm">
-                                            <thead>
-                                                <tr class="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wide text-gray-400">
-                                                    <th class="px-4 py-2">Product</th>
-                                                    <th class="px-4 py-2">Qty</th>
-                                                    <th class="px-4 py-2 text-right">Consignment price</th>
-                                                    <th class="px-4 py-2 text-right">Line total</th>
+                                <div class="mt-4 overflow-x-auto rounded-lg border border-gray-200">
+                                    <table class="w-full min-w-[26rem] text-sm">
+                                        <thead>
+                                            <tr class="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wide text-gray-400">
+                                                <th class="px-4 py-2">Product</th>
+                                                <th class="px-4 py-2">Qty</th>
+                                                <th class="px-4 py-2 text-right">Consignment price</th>
+                                                <th class="px-4 py-2 text-right">Line total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            @foreach ($consignment->items as $item)
+                                                <tr>
+                                                    <td class="px-4 py-2 font-medium text-gray-900">{{ $item->product->name }}</td>
+                                                    <td class="px-4 py-2 text-gray-700">{{ rtrim(rtrim(number_format((float) $item->quantity, 2), '0'), '.') }} {{ $item->unit?->abbreviation ?? $item->product?->unit }}</td>
+                                                    <td class="px-4 py-2 text-right text-gray-700">₱{{ number_format((float) $item->unit_cost, 2) }}</td>
+                                                    <td class="px-4 py-2 text-right font-semibold text-gray-900">₱{{ number_format((float) $item->line_total, 2) }}</td>
                                                 </tr>
-                                            </thead>
-                                            <tbody class="divide-y divide-gray-100">
-                                                @foreach ($consignment->items as $item)
-                                                    <tr>
-                                                        <td class="px-4 py-2 font-medium text-gray-900">{{ $item->product->name }}</td>
-                                                        <td class="px-4 py-2 text-gray-700">{{ rtrim(rtrim(number_format((float) $item->quantity, 2), '0'), '.') }} {{ $item->unit?->abbreviation ?? $item->product?->unit }}</td>
-                                                        <td class="px-4 py-2 text-right text-gray-700">₱{{ number_format((float) $item->unit_cost, 2) }}</td>
-                                                        <td class="px-4 py-2 text-right font-semibold text-gray-900">₱{{ number_format((float) $item->line_total, 2) }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                            <tfoot>
-                                                <tr class="border-t border-gray-200 bg-gray-50">
-                                                    <td colspan="3" class="px-4 py-2 text-right text-sm font-medium text-gray-700">Total</td>
-                                                    <td class="px-4 py-2 text-right font-bold text-gray-900">₱{{ number_format((float) $consignment->items->sum('line_total'), 2) }}</td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="border-t border-gray-200 bg-gray-50">
+                                                <td colspan="3" class="px-4 py-2 text-right text-sm font-medium text-gray-700">Total</td>
+                                                <td class="px-4 py-2 text-right font-bold text-gray-900">₱{{ number_format((float) $consignment->items->sum('line_total'), 2) }}</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
                                 </div>
-                            </div>
+                            </x-modal>
                         </template>
                     </tr>
                 @empty

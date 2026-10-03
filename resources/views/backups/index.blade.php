@@ -13,55 +13,48 @@
             </button>
 
             <template x-teleport="body">
-                <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-                    <div @click.outside="open = false" class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-                        <div class="mb-4 flex items-center justify-between">
-                            <h2 class="text-lg font-semibold text-gray-900">Create backup</h2>
-                            <button @click="open = false" class="text-gray-400 hover:text-gray-600">
-                                <x-icon name="x" class="h-5 w-5" />
-                            </button>
+                <x-modal title="Create backup" state="open">
+                    <form id="backup-create-form" method="POST" action="{{ route('backups.store') }}" class="space-y-4">
+                        @csrf
+
+                        <div>
+                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="backup_type">What to capture</label>
+                            <select name="type" id="backup_type" x-model="type" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                                <option value="database">Database only</option>
+                                <option value="full">Database and business files</option>
+                            </select>
                         </div>
 
-                        <form method="POST" action="{{ route('backups.store') }}" class="space-y-4">
-                            @csrf
+                        <p class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600" x-show="type === 'full'">
+                            Includes {{ implode(', ', (array) config('backup.files')) }}.
+                        </p>
 
-                            <div>
-                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="backup_type">What to capture</label>
-                                <select name="type" id="backup_type" x-model="type" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                    <option value="database">Database only</option>
-                                    <option value="full">Database and business files</option>
-                                </select>
-                            </div>
+                        <div>
+                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="backup_frequency">Retention group</label>
+                            <select name="frequency" id="backup_frequency" x-model="frequency" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                                <option value="none">Keep forever</option>
+                                <option value="daily">Daily &mdash; keep {{ config('backup.retention.daily') }}</option>
+                                <option value="weekly">Weekly &mdash; keep {{ config('backup.retention.weekly') }}</option>
+                                <option value="monthly">Monthly &mdash; keep {{ config('backup.retention.monthly') }}</option>
+                            </select>
+                        </div>
 
-                            <p class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600" x-show="type === 'full'">
-                                Includes {{ implode(', ', (array) config('backup.files')) }}.
-                            </p>
+                        <p class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                            The backup runs in the background. Sales, receipts and stock movements can carry on while it works.
+                        </p>
+                    </form>
 
-                            <div>
-                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="backup_frequency">Retention group</label>
-                                <select name="frequency" id="backup_frequency" x-model="frequency" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                    <option value="none">Keep forever</option>
-                                    <option value="daily">Daily &mdash; keep {{ config('backup.retention.daily') }}</option>
-                                    <option value="weekly">Weekly &mdash; keep {{ config('backup.retention.weekly') }}</option>
-                                    <option value="monthly">Monthly &mdash; keep {{ config('backup.retention.monthly') }}</option>
-                                </select>
-                            </div>
-
-                            <p class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                                The backup runs in the background. Sales, receipts and stock movements can carry on while it works.
-                            </p>
-
-                            <div class="flex justify-end gap-2 pt-2">
-                                <button type="button" @click="open = false" class="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    Cancel
-                                </button>
-                                <button type="submit" class="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800">
-                                    Queue backup
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                    <x-slot:footer>
+                        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <button type="button" @click="open = false" class="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                Cancel
+                            </button>
+                            <button type="submit" form="backup-create-form" class="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800">
+                                Queue backup
+                            </button>
+                        </div>
+                    </x-slot:footer>
+                </x-modal>
             </template>
         </div>
     @endcan

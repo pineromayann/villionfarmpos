@@ -28,85 +28,78 @@
         </button>
 
         <template x-teleport="body">
-            <div x-show="adjust" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-                <div @click.outside="adjust = false" class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-                    <div class="mb-4 flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900">Record consignment adjustment</h2>
-                        <button @click="adjust = false" class="text-gray-400 hover:text-gray-600">
-                            <x-icon name="x" class="h-5 w-5" />
-                        </button>
+            <x-modal title="Record consignment adjustment" state="adjust">
+                <p class="mb-4 text-sm text-gray-600">
+                    Returns cost the store nothing. Damaged, expired, or lost items are written off at the consignment price owed to the partner.
+                </p>
+
+                <form id="consignment-adjustment-form" method="POST" action="{{ route('consignment.adjustments.store') }}" class="space-y-4" x-data="adjustmentForm()">
+                    @csrf
+
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="partner_id">Partner</label>
+                        <select name="partner_id" x-model="form.partner_id" @change="pickPartner()" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                            <option value="">Select partner...</option>
+                            @foreach ($partners as $partner)
+                                <option value="{{ $partner->id }}">{{ $partner->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
-                    <p class="mb-4 text-sm text-gray-600">
-                        Returns cost the store nothing. Damaged, expired, or lost items are written off at the consignment price owed to the partner.
-                    </p>
-
-                    <form method="POST" action="{{ route('consignment.adjustments.store') }}" class="space-y-4" x-data="adjustmentForm()">
-                        @csrf
-
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="partner_id">Partner</label>
-                            <select name="partner_id" x-model="form.partner_id" @change="pickPartner()" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                <option value="">Select partner...</option>
-                                @foreach ($partners as $partner)
-                                    <option value="{{ $partner->id }}">{{ $partner->name }}</option>
-                                @endforeach
+                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="product_id">Product</label>
+                            <select name="product_id" x-model="form.product_id" @change="pickProduct()" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                                <option value="">Select...</option>
+                                <template x-for="product in availableProducts()" :key="product.id">
+                                    <option :value="product.id" x-text="product.name"></option>
+                                </template>
                             </select>
                         </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="product_id">Product</label>
-                                <select name="product_id" x-model="form.product_id" @change="pickProduct()" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                    <option value="">Select...</option>
-                                    <template x-for="product in availableProducts()" :key="product.id">
-                                        <option :value="product.id" x-text="product.name"></option>
-                                    </template>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="reason">Reason</label>
-                                <select name="reason" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                    <option value="return">Return to partner</option>
-                                    <option value="damaged">Damaged</option>
-                                    <option value="expired">Expired</option>
-                                    <option value="lost">Lost</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-4">
-                            <div>
-                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="quantity">Quantity</label>
-                                <input type="number" step="0.01" min="0.01" :max="maxQuantity()" name="quantity" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                <p class="mt-1 text-xs text-gray-500" x-text="onHandLabel()" x-show="form.onHand"></p>
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="unit_id">Unit</label>
-                                <select name="unit_id" x-model="form.unit_id" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                    <template x-for="unit in form.units" :key="unit.id">
-                                        <option :value="unit.id" x-text="unit.abbreviation"></option>
-                                    </template>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="adjusted_at">Date</label>
-                                <input type="date" name="adjusted_at" :value="form.date" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                            </div>
-                        </div>
-
                         <div>
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="note">Note</label>
-                            <input type="text" name="note" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="reason">Reason</label>
+                            <select name="reason" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                                <option value="return">Return to partner</option>
+                                <option value="damaged">Damaged</option>
+                                <option value="expired">Expired</option>
+                                <option value="lost">Lost</option>
+                                <option value="other">Other</option>
+                            </select>
                         </div>
+                    </div>
 
-                        <button type="submit" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
-                            Record adjustment
-                        </button>
-                    </form>
-                </div>
-            </div>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div>
+                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="quantity">Quantity</label>
+                            <input type="number" step="0.01" min="0.01" :max="maxQuantity()" name="quantity" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                            <p class="mt-1 text-xs text-gray-500" x-text="onHandLabel()" x-show="form.onHand"></p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="unit_id">Unit</label>
+                            <select name="unit_id" x-model="form.unit_id" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                                <template x-for="unit in form.units" :key="unit.id">
+                                    <option :value="unit.id" x-text="unit.abbreviation"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="adjusted_at">Date</label>
+                            <input type="date" name="adjusted_at" :value="form.date" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="note">Note</label>
+                        <input type="text" name="note" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                    </div>
+                </form>
+
+                <x-slot:footer>
+                    <button type="submit" form="consignment-adjustment-form" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
+                        Record adjustment
+                    </button>
+                </x-slot:footer>
+            </x-modal>
         </template>
     </div>
 @endsection

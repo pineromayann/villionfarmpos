@@ -53,42 +53,35 @@
                 </div>
 
                 <template x-teleport="body">
-                    <div x-show="pay" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-                        <div @click.outside="pay = false" class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-                            <div class="mb-4 flex items-center justify-between">
-                                <h2 class="text-lg font-semibold text-gray-900">Payment to {{ $entry['partner']->name }}</h2>
-                                <button @click="pay = false" class="text-gray-400 hover:text-gray-600">
-                                    <x-icon name="x" class="h-5 w-5" />
-                                </button>
+                    <x-modal title="Payment to {{ $entry['partner']->name }}" state="pay" max-width="max-w-md">
+                        <p class="text-sm text-gray-600">Current balance due: <span class="font-semibold text-emerald-700">₱{{ number_format($entry['balanceDue'], 2) }}</span></p>
+
+                        <form id="consignment-settlement-form-{{ $entry['partner']->id }}" method="POST" action="{{ route('consignment.settlement.store') }}" class="mt-4 space-y-4">
+                            @csrf
+                            <input type="hidden" name="partner_id" value="{{ $entry['partner']->id }}">
+
+                            <div>
+                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="amount">Amount</label>
+                                <input type="number" step="0.01" min="0.01" name="amount" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
                             </div>
 
-                            <p class="text-sm text-gray-600">Current balance due: <span class="font-semibold text-emerald-700">₱{{ number_format($entry['balanceDue'], 2) }}</span></p>
+                            <div>
+                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="settled_at">Date</label>
+                                <input type="date" name="settled_at" value="{{ now()->toDateString() }}" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                            </div>
 
-                            <form method="POST" action="{{ route('consignment.settlement.store') }}" class="mt-4 space-y-4">
-                                @csrf
-                                <input type="hidden" name="partner_id" value="{{ $entry['partner']->id }}">
+                            <div>
+                                <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="note">Note</label>
+                                <input type="text" name="note" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                            </div>
+                        </form>
 
-                                <div>
-                                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="amount">Amount</label>
-                                    <input type="number" step="0.01" min="0.01" name="amount" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                </div>
-
-                                <div>
-                                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="settled_at">Date</label>
-                                    <input type="date" name="settled_at" value="{{ now()->toDateString() }}" required class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                </div>
-
-                                <div>
-                                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="note">Note</label>
-                                    <input type="text" name="note" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                                </div>
-
-                                <button type="submit" class="w-full rounded-lg bg-emerald-700 py-2.5 text-sm font-medium text-white hover:bg-emerald-800">
-                                    Record payment
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                        <x-slot:footer>
+                            <button type="submit" form="consignment-settlement-form-{{ $entry['partner']->id }}" class="w-full rounded-lg bg-emerald-700 py-2.5 text-sm font-medium text-white hover:bg-emerald-800">
+                                Record payment
+                            </button>
+                        </x-slot:footer>
+                    </x-modal>
                 </template>
             </div>
         @empty

@@ -12,7 +12,7 @@
         class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
 </div>
 
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div>
         <label class="block text-sm font-medium text-gray-700">Phone</label>
         <input type="text" name="phone" value="{{ old('phone', $customer?->phone) }}"
@@ -25,7 +25,7 @@
     </div>
 </div>
 
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div>
         <label class="block text-sm font-medium text-gray-700">Crop</label>
         <input type="text" name="crop" value="{{ old('crop', $customer?->crop) }}"

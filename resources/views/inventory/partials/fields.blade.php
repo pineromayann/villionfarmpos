@@ -31,7 +31,7 @@
         class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
 </div>
 
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div>
         <label class="block text-sm font-medium text-gray-700">Category</label>
         <select name="category" required
@@ -50,7 +50,7 @@
     </div>
 </div>
 
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div>
         <label class="block text-sm font-medium text-gray-700">Batch number</label>
         <input type="text" name="batch_number" value="{{ old('batch_number', $product?->batch_number) }}"
@@ -63,7 +63,7 @@
     </div>
 </div>
 
-<div class="grid grid-cols-3 gap-4">
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
     <div>
         <label class="block text-sm font-medium text-gray-700">Cost price</label>
         <input type="number" step="0.01" min="0" name="cost_price" value="{{ old('cost_price', $product?->cost_price) }}"
@@ -90,7 +90,7 @@
     'units' => $unitsByType->all(),
     'types' => $unitTypes->map(fn ($type) => ['id' => $type->id, 'name' => $type->name])->values()->all(),
 ]) }})">
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
             <label class="block text-sm font-medium text-gray-700">Selling price</label>
             <input type="number" step="0.01" min="0" name="price" value="{{ old('price', $product?->price) }}"
@@ -136,7 +136,7 @@
         </p>
 
         <template x-for="(row, index) in rows" :key="'selling-unit-' + index">
-            <div class="mb-2 flex items-center gap-2">
+            <div class="mb-2 flex flex-wrap items-center gap-2">
                 <select :name="'selling_units[' + index + '][unit_id]'" x-model="row.unit_id" required
                     class="w-40 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none">
                     <template x-for="unit in allowedUnits()" :key="unit.id">
@@ -149,7 +149,7 @@
                 <span class="text-xs text-gray-500">
                     = <span x-text="row.conversion_to_base"></span> <span x-text="unitLabel(baseUnitId)"></span>
                 </span>
-                <button type="button" @click="removeRow(index)" class="text-gray-400 hover:text-red-600">
+                <button type="button" @click="removeRow(index)" class="ml-auto text-gray-400 hover:text-red-600">
                     <x-icon name="x" class="h-4 w-4" />
                 </button>
             </div>

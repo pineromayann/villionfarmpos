@@ -11,25 +11,18 @@
             Add product
         </button>
 
-        <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-            <div @click.outside="open = false" class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-                <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-900">Add product</h2>
-                    <button @click="open = false" class="text-gray-400 hover:text-gray-600">
-                        <x-icon name="x" class="h-5 w-5" />
-                    </button>
-                </div>
+        <x-modal title="Add product" state="open" max-width="max-w-2xl">
+            <form id="product-create-form" method="POST" action="{{ route('inventory.store') }}" class="space-y-4">
+                @csrf
+                @include('inventory.partials.fields')
+            </form>
 
-                <form method="POST" action="{{ route('inventory.store') }}" class="space-y-4">
-                    @csrf
-                    @include('inventory.partials.fields')
-
-                    <button type="submit" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
-                        Add product
-                    </button>
-                </form>
-            </div>
-        </div>
+            <x-slot:footer>
+                <button type="submit" form="product-create-form" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
+                    Add product
+                </button>
+            </x-slot:footer>
+        </x-modal>
     </div>
 @endsection
 
@@ -126,26 +119,19 @@
                             </td>
 
                             <template x-teleport="body">
-                                <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-                                    <div @click.outside="open = false" class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-                                        <div class="mb-4 flex items-center justify-between">
-                                            <h2 class="text-lg font-semibold text-gray-900">Edit product</h2>
-                                            <button @click="open = false" class="text-gray-400 hover:text-gray-600">
-                                                <x-icon name="x" class="h-5 w-5" />
-                                            </button>
-                                        </div>
+                                <x-modal title="Edit product" state="open" max-width="max-w-2xl">
+                                    <form id="product-edit-form-{{ $product->id }}" method="POST" action="{{ route('inventory.update', $product) }}" class="space-y-4">
+                                        @csrf
+                                        @method('PUT')
+                                        @include('inventory.partials.fields', ['product' => $product])
+                                    </form>
 
-                                        <form method="POST" action="{{ route('inventory.update', $product) }}" class="space-y-4">
-                                            @csrf
-                                            @method('PUT')
-                                            @include('inventory.partials.fields', ['product' => $product])
-
-                                            <button type="submit" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
-                                                Save changes
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
+                                    <x-slot:footer>
+                                        <button type="submit" form="product-edit-form-{{ $product->id }}" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
+                                            Save changes
+                                        </button>
+                                    </x-slot:footer>
+                                </x-modal>
                             </template>
                         </tr>
                     @empty

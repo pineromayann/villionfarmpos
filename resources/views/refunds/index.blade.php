@@ -11,85 +11,78 @@
             New refund
         </button>
 
-        <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-            <div @click.outside="open = false" class="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl">
-                <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-900">Process a refund</h2>
-                    <button @click="open = false" class="text-gray-400 hover:text-gray-600">
-                        <x-icon name="x" class="h-5 w-5" />
-                    </button>
+        <x-modal title="Process a refund" state="open" max-width="max-w-2xl">
+            <form id="refund-form" method="POST" action="{{ route('refunds.store') }}" class="space-y-4">
+                @csrf
+
+                <div>
+                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="sale_id">Sale</label>
+                    <select
+                        name="sale_id"
+                        id="sale_id"
+                        x-model="saleId"
+                        @change="loadItems()"
+                        class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
+                    >
+                        <option value="">Select a sale...</option>
+                        @foreach ($sales as $sale)
+                            <option value="{{ $sale->id }}">
+                                #{{ $sale->id }} — {{ $sale->customer?->name ?? 'Walk-in' }} ({{ $sale->created_at->format('n/j/Y') }})
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
 
-                <form method="POST" action="{{ route('refunds.store') }}" class="space-y-4">
-                    @csrf
+                <template x-if="loading">
+                    <p class="text-sm text-gray-500">Loading items...</p>
+                </template>
 
-                    <div>
-                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="sale_id">Sale</label>
-                        <select
-                            name="sale_id"
-                            id="sale_id"
-                            x-model="saleId"
-                            @change="loadItems()"
-                            class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-                        >
-                            <option value="">Select a sale...</option>
-                            @foreach ($sales as $sale)
-                                <option value="{{ $sale->id }}">
-                                    #{{ $sale->id }} — {{ $sale->customer?->name ?? 'Walk-in' }} ({{ $sale->created_at->format('n/j/Y') }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <template x-if="loading">
-                        <p class="text-sm text-gray-500">Loading items...</p>
-                    </template>
-
-                    <div x-show="saleId && !loading && items.length" class="max-h-72 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3">
-                        <template x-for="(item, index) in items" :key="item.id">
-                            <div class="flex items-center gap-3 text-sm">
-                                <div class="flex-1">
-                                    <p class="font-medium text-gray-900" x-text="item.product"></p>
-                                    <p class="text-xs text-gray-500">
-                                        <span x-text="'Returnable: ' + item.remaining + (item.unit ? ' ' + item.unit : '')"></span>
-                                        &middot; ₱<span x-text="Number(item.unit_price).toFixed(2)"></span>/unit
-                                    </p>
-                                </div>
-                                <input
-                                    type="hidden"
-                                    :name="`items[${index}][sale_item_id]`"
-                                    :value="item.id"
-                                    :disabled="item.remaining <= 0"
-                                >
-                                <input
-                                    type="number"
-                                    min="0"
-                                    :max="item.remaining"
-                                    step="0.01"
-                                    :name="`items[${index}][quantity]`"
-                                    x-model.number="item.refund_qty"
-                                    :disabled="item.remaining <= 0"
-                                    placeholder="Qty"
-                                    class="w-24 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-                                >
-                                <span class="w-24 text-right font-semibold text-gray-900">
-                                    ₱<span x-text="(item.refund_qty * item.unit_price).toFixed(2)"></span>
-                                </span>
+                <div x-show="saleId && !loading && items.length" class="space-y-2 rounded-lg border border-gray-200 p-3">
+                    <template x-for="(item, index) in items" :key="item.id">
+                        <div class="flex flex-wrap items-center gap-3 text-sm">
+                            <div class="min-w-[12rem] flex-1">
+                                <p class="font-medium text-gray-900" x-text="item.product"></p>
+                                <p class="text-xs text-gray-500">
+                                    <span x-text="'Returnable: ' + item.remaining + (item.unit ? ' ' + item.unit : '')"></span>
+                                    &middot; ₱<span x-text="Number(item.unit_price).toFixed(2)"></span>/unit
+                                </p>
                             </div>
-                        </template>
-                    </div>
+                            <input
+                                type="hidden"
+                                :name="`items[${index}][sale_item_id]`"
+                                :value="item.id"
+                                :disabled="item.remaining <= 0"
+                            >
+                            <input
+                                type="number"
+                                min="0"
+                                :max="item.remaining"
+                                step="0.01"
+                                :name="`items[${index}][quantity]`"
+                                x-model.number="item.refund_qty"
+                                :disabled="item.remaining <= 0"
+                                placeholder="Qty"
+                                class="w-24 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
+                            >
+                            <span class="w-24 text-right font-semibold text-gray-900">
+                                ₱<span x-text="(item.refund_qty * item.unit_price).toFixed(2)"></span>
+                            </span>
+                        </div>
+                    </template>
+                </div>
 
-                    <div>
-                        <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="note">Note</label>
-                        <input type="text" name="note" id="note" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
-                    </div>
+                <div>
+                    <label class="text-xs font-medium uppercase tracking-wide text-gray-500" for="note">Note</label>
+                    <input type="text" name="note" id="note" class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+                </div>
+            </form>
 
-                    <button type="submit" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
-                        Process refund
-                    </button>
-                </form>
-            </div>
-        </div>
+            <x-slot:footer>
+                <button type="submit" form="refund-form" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
+                    Process refund
+                </button>
+            </x-slot:footer>
+        </x-modal>
     </div>
 @endsection
 

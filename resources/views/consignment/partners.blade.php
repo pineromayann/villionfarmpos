@@ -22,25 +22,18 @@
             Add partner
         </button>
 
-        <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-            <div @click.outside="open = false" class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-                <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-900">Add consignment partner</h2>
-                    <button @click="open = false" class="text-gray-400 hover:text-gray-600">
-                        <x-icon name="x" class="h-5 w-5" />
-                    </button>
-                </div>
+        <x-modal title="Add consignment partner" state="open">
+            <form id="partner-create-form" method="POST" action="{{ route('consignment-partners.store') }}" class="space-y-4">
+                @csrf
+                @include('consignment.partials.partner-fields')
+            </form>
 
-                <form method="POST" action="{{ route('consignment-partners.store') }}" class="space-y-4">
-                    @csrf
-                    @include('consignment.partials.partner-fields')
-
-                    <button type="submit" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
-                        Add partner
-                    </button>
-                </form>
-            </div>
-        </div>
+            <x-slot:footer>
+                <button type="submit" form="partner-create-form" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
+                    Add partner
+                </button>
+            </x-slot:footer>
+        </x-modal>
     </div>
 @endsection
 
@@ -120,26 +113,19 @@
                 </div>
 
                 <template x-teleport="body">
-                    <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-                        <div @click.outside="open = false" class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-                            <div class="mb-4 flex items-center justify-between">
-                                <h2 class="text-lg font-semibold text-gray-900">Edit partner</h2>
-                                <button @click="open = false" class="text-gray-400 hover:text-gray-600">
-                                    <x-icon name="x" class="h-5 w-5" />
-                                </button>
-                            </div>
+                    <x-modal title="Edit partner" state="open">
+                        <form id="partner-edit-form-{{ $partner->id }}" method="POST" action="{{ route('consignment-partners.update', $partner) }}" class="space-y-4">
+                            @csrf
+                            @method('PUT')
+                            @include('consignment.partials.partner-fields', ['consignmentPartner' => $partner])
+                        </form>
 
-                            <form method="POST" action="{{ route('consignment-partners.update', $partner) }}" class="space-y-4">
-                                @csrf
-                                @method('PUT')
-                                @include('consignment.partials.partner-fields', ['consignmentPartner' => $partner])
-
-                                <button type="submit" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
-                                    Save changes
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                        <x-slot:footer>
+                            <button type="submit" form="partner-edit-form-{{ $partner->id }}" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
+                                Save changes
+                            </button>
+                        </x-slot:footer>
+                    </x-modal>
                 </template>
             </div>
         @empty

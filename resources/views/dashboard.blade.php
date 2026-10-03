@@ -190,30 +190,16 @@
                 </ul>
             @endif
 
-            <div
-                x-show="lowStockOpen"
-                x-cloak
-                class="fixed inset-0 z-50 flex items-center justify-center p-4"
-                @keydown.escape.window="lowStockOpen = false"
-            >
-                <div class="absolute inset-0 bg-black/40" @click="lowStockOpen = false"></div>
-                <div class="relative w-full max-w-lg rounded-xl bg-white p-5 shadow-xl">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-semibold text-gray-900">Low stock products</h3>
-                        <button type="button" @click="lowStockOpen = false" class="text-gray-400 hover:text-gray-600">
-                            <x-icon name="x" class="h-5 w-5" />
-                        </button>
-                    </div>
-                    <ul class="mt-4 max-h-80 space-y-1.5 overflow-y-auto pr-1">
-                        @foreach ($lowStock as $product)
-                            <li class="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm {{ $loop->index < 5 ? 'bg-gray-50' : '' }}">
-                                <span class="truncate text-gray-700">{{ $product->name }}</span>
-                                <span class="font-medium text-red-600">{{ rtrim(rtrim(number_format($product->stock, 2), '0'), '.') }} {{ $product->unit }}</span>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
+            <x-modal title="Low stock products" state="lowStockOpen">
+                <ul class="space-y-1.5">
+                    @foreach ($lowStock as $product)
+                        <li class="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-sm {{ $loop->index < 5 ? 'bg-gray-50' : '' }}">
+                            <span class="truncate text-gray-700">{{ $product->name }}</span>
+                            <span class="shrink-0 font-medium text-red-600">{{ rtrim(rtrim(number_format($product->stock, 2), '0'), '.') }} {{ $product->unit }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </x-modal>
         </div>
     </div>
 
