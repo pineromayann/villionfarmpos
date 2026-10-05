@@ -11,10 +11,20 @@ class Sale extends Model
 {
     use HasFactory;
 
+    const PAYMENT_METHODS = ['cash', 'card', 'mobile_money'];
+
     /**
      * @var array<int, string>
      */
-    protected $fillable = ['customer_id', 'subtotal', 'discount', 'total', 'payment_method'];
+    protected $fillable = [
+        'customer_id',
+        'subtotal',
+        'discount',
+        'total',
+        'payment_method',
+        'amount_paid',
+        'change_amount',
+    ];
 
     /**
      * @return array<string, string>
@@ -25,6 +35,8 @@ class Sale extends Model
             'subtotal' => 'decimal:2',
             'discount' => 'decimal:2',
             'total' => 'decimal:2',
+            'amount_paid' => 'decimal:2',
+            'change_amount' => 'decimal:2',
         ];
     }
 

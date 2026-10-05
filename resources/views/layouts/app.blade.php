@@ -76,6 +76,8 @@
                     @endforeach
                 </ul>
 
+                @include('analytics.nav')
+
                 <p class="mt-5 px-2 pb-2 text-xs font-medium uppercase tracking-wide text-gray-400">Consignment</p>
 
                 <ul class="space-y-0.5">

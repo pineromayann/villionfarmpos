@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\ConsignmentController;
@@ -81,6 +82,60 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/purchases/csv', [ReportController::class, 'purchasesCsv'])->name('reports.purchases.csv');
     Route::get('/reports/consignment/pdf', [ReportController::class, 'consignmentPdf'])->name('reports.consignment.pdf');
     Route::get('/reports/consignment/csv', [ReportController::class, 'consignmentCsv'])->name('reports.consignment.csv');
+
+    Route::prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('/', [AnalyticsController::class, 'index'])
+            ->middleware('permission:analytics.view')
+            ->name('index');
+
+        Route::get('/sales', [AnalyticsController::class, 'sales'])
+            ->middleware('permission:analytics.sales.view')
+            ->name('sales');
+
+        Route::get('/gross-profit', [AnalyticsController::class, 'grossProfit'])
+            ->middleware('permission:analytics.profit.view')
+            ->name('gross-profit');
+
+        Route::get('/inventory', [AnalyticsController::class, 'inventory'])
+            ->middleware('permission:analytics.inventory.view')
+            ->name('inventory');
+
+        Route::get('/procurement', [AnalyticsController::class, 'procurement'])
+            ->middleware('permission:analytics.procurement.view')
+            ->name('procurement');
+
+        Route::get('/consignment', [AnalyticsController::class, 'consignment'])
+            ->middleware('permission:analytics.consignment.view')
+            ->name('consignment');
+
+        Route::get('/products', [AnalyticsController::class, 'products'])
+            ->middleware('permission:analytics.products.view')
+            ->name('products');
+
+        Route::get('/sales/csv', [AnalyticsController::class, 'salesCsv'])
+            ->middleware('permission:analytics.sales.view')
+            ->name('sales.csv');
+
+        Route::get('/gross-profit/csv', [AnalyticsController::class, 'grossProfitCsv'])
+            ->middleware('permission:analytics.profit.view')
+            ->name('gross-profit.csv');
+
+        Route::get('/inventory/csv', [AnalyticsController::class, 'inventoryCsv'])
+            ->middleware('permission:analytics.inventory.view')
+            ->name('inventory.csv');
+
+        Route::get('/procurement/csv', [AnalyticsController::class, 'procurementCsv'])
+            ->middleware('permission:analytics.procurement.view')
+            ->name('procurement.csv');
+
+        Route::get('/consignment/csv', [AnalyticsController::class, 'consignmentCsv'])
+            ->middleware('permission:analytics.consignment.view')
+            ->name('consignment.csv');
+
+        Route::get('/products/csv', [AnalyticsController::class, 'productsCsv'])
+            ->middleware('permission:analytics.products.view')
+            ->name('products.csv');
+    });
 
     Route::middleware('permission:backup.view')->group(function () {
         Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');

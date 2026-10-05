@@ -25,6 +25,8 @@ pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
 
+require __DIR__.'/Pest/Analytics.php';
+
 // Integration tests own their database instead of using RefreshDatabase, so
 // they can run migrations, wipe the schema and restore over it themselves.
 pest()->extend(TestCase::class)

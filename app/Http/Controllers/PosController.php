@@ -62,6 +62,7 @@ class PosController extends Controller
         $validated = $request->validate([
             'customer_id' => ['nullable', 'exists:customers,id'],
             'discount' => ['nullable', 'numeric', 'min:0'],
+            'amount_paid' => ['nullable', 'numeric', 'min:0'],
             'payment_method' => ['required', 'in:cash,card,mobile_money'],
             'cart' => ['required', 'json'],
         ]);
@@ -125,6 +126,8 @@ class PosController extends Controller
 
             $discount = $validated['discount'] ?? 0;
             $total = max(0, $subtotal - $discount);
+            $amountPaid = (float) ($validated['amount_paid'] ?? 0);
+            $changeAmount = max(0, $amountPaid - $total);
 
             $sale = Sale::create([
                 'customer_id' => $validated['customer_id'] ?? null,
@@ -132,6 +135,8 @@ class PosController extends Controller
                 'discount' => $discount,
                 'total' => $total,
                 'payment_method' => $validated['payment_method'],
+                'amount_paid' => $amountPaid,
+                'change_amount' => $changeAmount,
             ]);
 
             foreach ($lines as $line) {

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Point of Sale')
 @section('heading', 'Point of Sale')
@@ -9,6 +9,7 @@
         x-data="{
             cart: [],
             discount: 0,
+            amountPaid: 0,
             paymentMethod: 'cash',
             customerId: '',
             search: '',
@@ -77,6 +78,9 @@
                         partners: product.consignedPartners || [],
                         partnerId: '',
                     });
+                    if (this.amountPaid < this.total) {
+                        this.amountPaid = 0;
+                    }
                 }
             },
             limit(item) {
@@ -103,12 +107,20 @@
             },
             removeFromCart(index) {
                 this.cart.splice(index, 1);
+                if (this.cart.length === 0) {
+                    this.amountPaid = 0;
+                    this.discount = 0;
+                }
             },
             get subtotal() {
                 return this.cart.reduce((sum, i) => sum + i.price * i.qty * i.conversion, 0);
             },
             get total() {
                 return Math.max(0, this.subtotal - (parseFloat(this.discount) || 0));
+            },
+            get change() {
+                const paid = parseFloat(this.amountPaid) || 0;
+                return Math.max(0, paid - this.total);
             },
         }"
         class="grid grid-cols-1 gap-6 lg:grid-cols-3"
@@ -277,6 +289,16 @@
                         <option value="card">Card</option>
                         <option value="mobile_money">Mobile Money</option>
                     </select>
+                </div>
+
+                <div class="mt-2 flex items-center justify-between text-sm" x-show="paymentMethod === 'cash'">
+                    <label class="text-gray-500" for="amount_paid">Amount paid (₱)</label>
+                    <input type="number" id="amount_paid" x-model="amountPaid" min="0" step="0.01" class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-right text-sm focus:border-gray-400 focus:outline-none" placeholder="0.00">
+                </div>
+
+                <div class="mt-2 flex items-center justify-between text-sm" x-show="paymentMethod === 'cash' && amountPaid > 0">
+                    <span class="text-gray-500">Change</span>
+                    <span class="font-medium text-gray-900" x-text="'₱' + change.toFixed(2)"></span>
                 </div>
 
                 <div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">

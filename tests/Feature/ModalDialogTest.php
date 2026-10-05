@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Product;
+use App\Models\StockMovement;
 use App\Models\User;
 
 beforeEach(function () {
@@ -68,6 +69,6 @@ test('timestamps reflect the application timezone when actions are recorded', fu
         'type' => 'in',
         'created_at' => '2026-10-03 11:30:00',
     ]);
-    $movement = \App\Models\StockMovement::latest()->first();
+    $movement = StockMovement::latest()->first();
     expect($movement->created_at->format('Y-m-d H:i:s'))->toBe('2026-10-03 11:30:00');
 });
