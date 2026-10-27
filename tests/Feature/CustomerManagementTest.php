@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Customer;
+use App\Models\Sale;
 use App\Models\User;
 
 beforeEach(function () {
@@ -64,4 +65,45 @@ test('a customer can be deleted', function () {
 
     $response->assertRedirect();
     $this->assertDatabaseMissing('customers', ['id' => $customer->id]);
+});
+
+test('customers are listed in a table with their details', function () {
+    Customer::factory()->create([
+        'name' => 'Amina Yusuf',
+        'farm_name' => 'Green Valley Farm',
+        'phone' => '0712345678',
+        'location' => 'Kisumu',
+        'crop' => 'Tomatoes',
+        'hectares' => 4,
+    ]);
+
+    $response = $this->get(route('customers.index'));
+
+    $response->assertOk();
+    $response->assertSee('<table', false);
+    $response->assertSee('Customer</th>', false);
+    $response->assertSee('Farm</th>', false);
+    $response->assertSee('Phone</th>', false);
+    $response->assertSee('Location</th>', false);
+    $response->assertSee('Crop</th>', false);
+    $response->assertSee('Hectares</th>', false);
+    $response->assertSee('Lifetime spend</th>', false);
+    $response->assertSee('Amina Yusuf');
+    $response->assertSee('Green Valley Farm');
+    $response->assertSee('0712345678');
+    $response->assertSee('Kisumu');
+    $response->assertSee('Tomatoes');
+    $response->assertSee('4');
+    $response->assertSee('x-data="customerTable(', false);
+});
+
+test('a customer row shows their lifetime spend', function () {
+    $customer = Customer::factory()->create();
+    Sale::factory()->create(['customer_id' => $customer->id, 'total' => 250]);
+    Sale::factory()->create(['customer_id' => $customer->id, 'total' => 150]);
+
+    $response = $this->get(route('customers.index'));
+
+    $response->assertOk();
+    $response->assertSee('400.00');
 });

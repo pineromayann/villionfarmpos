@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\DB;
  * spent, which is the difference a supplier reconciliation turns on.
  *
  * Received spend is dated by `received_at`, falling back to `order_date` for
- * orders that predate receipt tracking.
+ * orders that predate receipt tracking, and counts what actually landed:
+ * `received_total` for a short delivery, otherwise the ordered value.
  */
 class ProcurementAnalytics extends AnalyticsQuery
 {
@@ -47,7 +48,7 @@ class ProcurementAnalytics extends AnalyticsQuery
         $cancelled = $this->orders($filters, ['cancelled']);
 
         $orderedValue = (float) $ordered->sum('purchase_orders.total');
-        $receivedValue = (float) $received->sum('purchase_orders.total');
+        $receivedValue = (float) $received->sum(DB::raw('COALESCE(purchase_orders.received_total, purchase_orders.total)'));
         $cancelledValue = (float) $cancelled->sum('purchase_orders.total');
         $awaiting = $this->openOrders();
         $awaitingValue = (float) $awaiting->sum('total');
@@ -103,7 +104,7 @@ class ProcurementAnalytics extends AnalyticsQuery
             ->groupByRaw($receivedExpression)
             ->select([
                 DB::raw("{$receivedExpression} AS bucket"),
-                DB::raw('SUM(purchase_orders.total) AS value'),
+                DB::raw('SUM(COALESCE(purchase_orders.received_total, purchase_orders.total)) AS value'),
             ])
             ->get()
             ->keyBy('bucket');
@@ -132,7 +133,7 @@ class ProcurementAnalytics extends AnalyticsQuery
                 'purchase_orders.supplier_id',
                 'suppliers.name',
                 DB::raw('COUNT(*) AS orders'),
-                DB::raw('SUM(purchase_orders.total) AS value'),
+                DB::raw('SUM(COALESCE(purchase_orders.received_total, purchase_orders.total)) AS value'),
             ])
             ->get()
             ->map(fn ($row) => [
@@ -171,8 +172,8 @@ class ProcurementAnalytics extends AnalyticsQuery
             ->select([
                 'purchase_order_items.product_id',
                 'products.name',
-                DB::raw('SUM(purchase_order_items.quantity) AS quantity'),
-                DB::raw('SUM(purchase_order_items.line_total) AS value'),
+                DB::raw('SUM(COALESCE(purchase_order_items.received_quantity, purchase_order_items.quantity)) AS quantity'),
+                DB::raw('SUM(COALESCE(purchase_order_items.received_quantity, purchase_order_items.quantity) * purchase_order_items.unit_cost) AS value'),
             ])
             ->get()
             ->map(fn ($row) => [
@@ -200,7 +201,7 @@ class ProcurementAnalytics extends AnalyticsQuery
             ->select([
                 'purchase_orders.status',
                 DB::raw('COUNT(*) AS orders'),
-                DB::raw('SUM(purchase_orders.total) AS value'),
+                DB::raw("SUM(CASE WHEN purchase_orders.status = 'received' THEN COALESCE(purchase_orders.received_total, purchase_orders.total) ELSE purchase_orders.total END) AS value"),
             ])
             ->get()
             ->keyBy('status');

@@ -77,7 +77,7 @@
                                 </span>
                             @endif
                             @if ($sale->sale)
-                                <span class="text-xs text-gray-400">&middot; Sale #{{ $sale->sale->id }}</span>
+                                <span class="text-xs text-gray-400">&middot; Sale {{ $sale->sale->receiptNumber() }}</span>
                             @endif
                         </td>
                         <td class="px-5 py-3 text-right text-gray-900">{{ rtrim(rtrim(number_format($sale->remainingQuantity(), 2), '0'), '.') }} {{ $sale->unit?->abbreviation ?? $sale->product->unit }}</td>

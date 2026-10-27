@@ -45,9 +45,10 @@ class ReportController extends Controller
 
         return $this->streamCsv(
             'sales-report.csv',
-            ['Date', 'Customer', 'Items', 'Payment method', 'Subtotal', 'Discount', 'Total'],
+            ['Date', 'Receipt No.', 'Customer', 'Items', 'Payment method', 'Subtotal', 'Discount', 'Total'],
             $sales->map(fn (Sale $sale) => [
                 $sale->created_at->format('Y-m-d H:i'),
+                $sale->receiptNumber(),
                 $sale->customer?->name ?? 'Walk-in customer',
                 $sale->itemCount(),
                 Str::of($sale->payment_method)->replace('_', ' ')->title(),

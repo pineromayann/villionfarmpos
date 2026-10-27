@@ -139,6 +139,8 @@ class PosController extends Controller
                 'change_amount' => $changeAmount,
             ]);
 
+            $sale->update(['receipt_number' => $sale->deriveReceiptNumber()]);
+
             foreach ($lines as $line) {
                 $saleItem = $sale->items()->create([
                     'product_id' => $line['product']->id,
@@ -186,7 +188,7 @@ class PosController extends Controller
             return $sale;
         });
 
-        return redirect()->route('pos.index')->with('success', "Sale #{$sale->id} completed.");
+        return redirect()->route('pos.index')->with('success', "Sale {$sale->receiptNumber()} completed.");
     }
 
     /**

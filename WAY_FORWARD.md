@@ -15,7 +15,9 @@ A roadmap of improvements and new features planned for the system.
 ## Medium Priority
 
 - [ ] **Customer Purchase History** — Dedicated page showing a customer's full transaction history with totals over time
-- [ ] **Reorder Alerts** — Automatic low-stock notifications with configurable thresholds per product
+- [x] **Reorder Alerts** — Automatic low-stock notifications with configurable thresholds per product
+- [x] **Partial Deliveries** — Record a short delivery against a purchase order with an optional note, and raise a balance order for whatever did not arrive
+- [x] **Order Receipt Numbers** — Every completed sale carries a unique order receipt number for monitoring
 - [ ] **Batch & Expiry Tracking Reports** — Dedicated view for products grouped by batch number with expiry countdown
 - [ ] **Sales by Period Analytics** — Daily, weekly, monthly, and yearly sales breakdowns with trend charts
 - [ ] **User Activity Log** — Track who created, updated, or deleted records across the system

@@ -197,3 +197,52 @@ test('a quantity below the smallest saleable amount is rejected', function () {
     expect(Sale::count())->toBe(0);
     expect($product->fresh()->stock)->toEqual(20);
 });
+
+test('a completed sale carries an order receipt number', function () {
+    $product = Product::factory()->create([
+        'price' => 10,
+        'cost_price' => null,
+        'dealers_price_cod' => null,
+        'terms_30_days' => null,
+        'stock' => 20,
+    ]);
+
+    $response = $this->post(route('pos.store'), [
+        'payment_method' => 'cash',
+        'cart' => json_encode([
+            ['product_id' => $product->id, 'qty' => 1],
+        ]),
+    ]);
+
+    $response->assertRedirect(route('pos.index'));
+
+    $sale = Sale::first();
+
+    expect($sale->receipt_number)->toBe('ORN-'.str_pad((string) $sale->id, 6, '0', STR_PAD_LEFT));
+    $response->assertSessionHas('success', "Sale {$sale->receiptNumber()} completed.");
+});
+
+test('each sale gets its own order receipt number', function () {
+    $product = Product::factory()->create([
+        'price' => 10,
+        'cost_price' => null,
+        'dealers_price_cod' => null,
+        'terms_30_days' => null,
+        'stock' => 20,
+    ]);
+
+    foreach (range(1, 2) as $ignored) {
+        $this->post(route('pos.store'), [
+            'payment_method' => 'cash',
+            'cart' => json_encode([
+                ['product_id' => $product->id, 'qty' => 1],
+            ]),
+        ]);
+    }
+
+    $numbers = Sale::pluck('receipt_number')->all();
+
+    expect($numbers)->toHaveCount(2);
+    expect(array_unique($numbers))->toHaveCount(2);
+    expect(Sale::whereNull('receipt_number')->count())->toBe(0);
+});

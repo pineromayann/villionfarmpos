@@ -23,8 +23,18 @@ class Customer extends Model
         return $this->hasMany(Sale::class);
     }
 
+    /**
+     * What this customer has spent across every sale.
+     *
+     * Uses the preloaded sum when the caller has eager loaded it, so a list
+     * of customers does not run a query per row.
+     */
     public function lifetimeSpend(): float
     {
+        if ($this->lifetime_spend !== null) {
+            return (float) $this->lifetime_spend;
+        }
+
         return (float) $this->sales()->sum('total');
     }
 }

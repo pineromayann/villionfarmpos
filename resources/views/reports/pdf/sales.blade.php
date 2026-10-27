@@ -35,6 +35,7 @@
         <thead>
             <tr>
                 <th>Date</th>
+                <th>Receipt No.</th>
                 <th>Customer</th>
                 <th>Items</th>
                 <th>Payment</th>
@@ -47,6 +48,7 @@
             @forelse ($sales as $sale)
                 <tr>
                     <td>{{ $sale->created_at->format('n/j/Y, g:i A') }}</td>
+                    <td>{{ $sale->receiptNumber() }}</td>
                     <td>{{ $sale->customer?->name ?? 'Walk-in' }}</td>
                     <td>{{ $sale->itemCount() }}</td>
                     <td>{{ \Illuminate\Support\Str::of($sale->payment_method)->replace('_', ' ')->title() }}</td>
@@ -56,7 +58,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7">No sales recorded for this period.</td>
+                    <td colspan="8">No sales recorded for this period.</td>
                 </tr>
             @endforelse
         </tbody>

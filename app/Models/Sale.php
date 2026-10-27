@@ -13,11 +13,16 @@ class Sale extends Model
 
     const PAYMENT_METHODS = ['cash', 'card', 'mobile_money'];
 
+    const RECEIPT_PREFIX = 'ORN-';
+
+    const RECEIPT_PADDING = 6;
+
     /**
      * @var array<int, string>
      */
     protected $fillable = [
         'customer_id',
+        'receipt_number',
         'subtotal',
         'discount',
         'total',
@@ -77,5 +82,21 @@ class Sale extends Model
     public function itemCount(): int
     {
         return (int) $this->items()->sum('quantity');
+    }
+
+    /**
+     * The order receipt number quoted on the sale.
+     */
+    public function receiptNumber(): string
+    {
+        return $this->receipt_number ?? $this->deriveReceiptNumber();
+    }
+
+    /**
+     * Build the receipt number for this sale from its own identifier.
+     */
+    public function deriveReceiptNumber(): string
+    {
+        return self::RECEIPT_PREFIX.str_pad((string) $this->id, self::RECEIPT_PADDING, '0', STR_PAD_LEFT);
     }
 }

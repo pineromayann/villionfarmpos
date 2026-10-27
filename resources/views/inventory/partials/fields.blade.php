@@ -81,6 +81,18 @@
     </div>
 </div>
 
+<div>
+    <label class="block text-sm font-medium text-gray-700">Reorder level</label>
+    <input type="number" step="0.01" min="0" name="reorder_level"
+        value="{{ old('reorder_level', $product?->reorder_level) }}"
+        placeholder="{{ \App\Models\Product::LOW_STOCK_THRESHOLD }}"
+        class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none">
+    <p class="mt-1 text-xs text-gray-400">
+        Stock at or below this level is suggested for procurement on the Procurement page.
+        Leave blank to use the default of {{ \App\Models\Product::LOW_STOCK_THRESHOLD }}.
+    </p>
+</div>
+
 <div x-data="sellingUnitsForm({{ Illuminate\Support\Js::from([
     'baseUnitId' => (int) $baseUnitId,
     'rows' => collect($sellingUnitRows)->map(fn ($row) => [

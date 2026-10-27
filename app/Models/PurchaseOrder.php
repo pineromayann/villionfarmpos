@@ -22,8 +22,11 @@ class PurchaseOrder extends Model
         'order_date',
         'expected_date',
         'total',
+        'received_total',
         'note',
+        'received_note',
         'received_at',
+        'parent_order_id',
         'created_by',
     ];
 
@@ -36,6 +39,7 @@ class PurchaseOrder extends Model
             'order_date' => 'date',
             'expected_date' => 'date',
             'total' => 'decimal:2',
+            'received_total' => 'decimal:2',
             'received_at' => 'datetime',
         ];
     }
@@ -65,6 +69,26 @@ class PurchaseOrder extends Model
     }
 
     /**
+     * The order this one balances out, when it was raised for a short delivery.
+     *
+     * @return BelongsTo<PurchaseOrder, $this>
+     */
+    public function parentOrder(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_order_id');
+    }
+
+    /**
+     * Balance orders raised for the shortfall of this order.
+     *
+     * @return HasMany<PurchaseOrder, $this>
+     */
+    public function balanceOrders(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_order_id');
+    }
+
+    /**
      * Stock movements written when this order was received.
      *
      * @return HasMany<StockMovement, $this>
@@ -87,6 +111,31 @@ class PurchaseOrder extends Model
     public function isCancelled(): bool
     {
         return $this->status === 'cancelled';
+    }
+
+    /**
+     * Value actually received into stock, falling back to the ordered value
+     * for orders received before partial receiving was available.
+     */
+    public function receivedTotal(): float
+    {
+        return (float) ($this->received_total ?? $this->total);
+    }
+
+    /**
+     * Value of the lines that never arrived.
+     */
+    public function shortfallTotal(): float
+    {
+        return max(0.0, (float) $this->total - $this->receivedTotal());
+    }
+
+    /**
+     * True when the delivery was short of what was ordered.
+     */
+    public function isPartial(): bool
+    {
+        return $this->isReceived() && $this->shortfallTotal() > 0;
     }
 
     public function itemCount(): int

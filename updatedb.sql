@@ -15,9 +15,16 @@
 --        - the UOM migration (unit_types/units/product_units, products.base_unit_id,
 --          sale_items.unit_id, stock_movements.unit_id, drops products.unit,
 --          and seeds the unit catalog + backfills existing products),
---        - the procurement migration (purchase_orders / purchase_order_items), and
+--        - the procurement migration (purchase_orders / purchase_order_items),
 --        - the consignment refund-tracking migration (consignment_sales.sale_item_id
---          plus the refunded_* columns).
+--          plus the refunded_* columns), and
+--        - the reorder-level migration (products.reorder_level, the per-product
+--          low-stock threshold used by the "Suggested to procure" panel),
+--        - the partial-receiving migration (purchase_orders.received_note /
+--          received_total / parent_order_id, purchase_order_items.received_quantity,
+--          for recording short deliveries), and
+--        - the receipt-number migration (sales.receipt_number, the order receipt
+--          number printed on every completed sale).
 --      The procurement tables are intentionally left out of this script:
 --      purchase_order_items has a foreign key to units, which only exists once
 --      the UOM migration has run, so Laravel itself must create them. The

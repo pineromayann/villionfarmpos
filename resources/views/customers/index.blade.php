@@ -38,74 +38,128 @@
 @endsection
 
 @section('content')
-    <div x-data="{ search: '' }" @customer-search.window="search = $event.detail" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        @forelse ($customers as $customer)
-            <div
-                x-data="{ open: false }"
-                x-show="!search || {{ Illuminate\Support\Js::from(Str::lower($customer->name.' '.$customer->farm_name)) }}.includes(search.toLowerCase())"
-                class="rounded-xl border border-gray-200 bg-white p-5"
-            >
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="font-semibold text-gray-900">{{ $customer->name }}</p>
-                        <p class="text-sm text-gray-500">{{ $customer->farm_name }}</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <button @click="open = true" class="text-gray-400 hover:text-gray-700">
-                            <x-icon name="pencil" class="h-4 w-4" />
-                        </button>
-                        <form method="POST" action="{{ route('customers.destroy', $customer) }}" onsubmit="return confirm('Delete this customer?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-gray-400 hover:text-red-600">
-                                <x-icon name="trash" class="h-4 w-4" />
-                            </button>
-                        </form>
-                    </div>
-                </div>
+    @php
+        $searchRows = $customers->map(fn ($customer) => Str::lower(trim(implode(' ', array_filter([
+            $customer->name,
+            $customer->farm_name,
+            $customer->phone,
+            $customer->location,
+            $customer->crop,
+        ])))))->values()->all();
+    @endphp
 
-                <div class="mt-3 space-y-1.5 text-sm text-gray-600">
-                    @if ($customer->phone)
-                        <p class="flex items-center gap-2"><x-icon name="phone" class="h-4 w-4 text-gray-400" /> {{ $customer->phone }}</p>
-                    @endif
-                    @if ($customer->location)
-                        <p class="flex items-center gap-2"><x-icon name="location" class="h-4 w-4 text-gray-400" /> {{ $customer->location }}</p>
-                    @endif
-                    @if ($customer->crop)
-                        <p class="flex items-center gap-2">
-                            <x-icon name="sprout" class="h-4 w-4 text-gray-400" />
-                            {{ $customer->crop }}@if ($customer->hectares) &middot; {{ rtrim(rtrim(number_format($customer->hectares, 2), '0'), '.') }} ha @endif
-                        </p>
-                    @endif
-                </div>
+    <div
+        x-data="customerTable({{ Illuminate\Support\Js::from($searchRows) }})"
+        @customer-search.window="search = $event.detail"
+        class="overflow-x-auto rounded-xl border border-gray-200 bg-white"
+    >
+        <table class="w-full min-w-[60rem] text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wide text-gray-400">
+                    <th class="px-5 py-3">Customer</th>
+                    <th class="px-5 py-3">Farm</th>
+                    <th class="px-5 py-3">Phone</th>
+                    <th class="px-5 py-3">Location</th>
+                    <th class="px-5 py-3">Crop</th>
+                    <th class="px-5 py-3 text-right">Hectares</th>
+                    <th class="px-5 py-3 text-right">Lifetime spend</th>
+                    <th class="px-5 py-3 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @forelse ($customers as $customer)
+                    <tr
+                        x-data="{ open: false }"
+                        x-show="matches({{ $loop->index }})"
+                        class="transition-colors hover:bg-gray-50"
+                    >
+                        <td class="px-5 py-3">
+                            <p class="font-medium text-gray-900">{{ $customer->name }}</p>
+                            @if ($customer->notes)
+                                <p class="mt-0.5 max-w-[20rem] truncate text-xs text-gray-500" title="{{ $customer->notes }}">{{ $customer->notes }}</p>
+                            @endif
+                        </td>
+                        <td class="px-5 py-3 text-gray-700">{{ $customer->farm_name ?? '—' }}</td>
+                        <td class="whitespace-nowrap px-5 py-3 text-gray-700">{{ $customer->phone ?? '—' }}</td>
+                        <td class="px-5 py-3 text-gray-700">{{ $customer->location ?? '—' }}</td>
+                        <td class="px-5 py-3 text-gray-700">{{ $customer->crop ?? '—' }}</td>
+                        <td class="px-5 py-3 text-right text-gray-700">
+                            {{ $customer->hectares ? rtrim(rtrim(number_format((float) $customer->hectares, 2), '0'), '.') : '—' }}
+                        </td>
+                        <td class="whitespace-nowrap px-5 py-3 text-right font-semibold text-gray-900">
+                            ₱{{ number_format($customer->lifetimeSpend(), 2) }}
+                        </td>
+                        <td class="px-5 py-3">
+                            <div class="flex items-center justify-end gap-3">
+                                <button @click="open = true" title="Edit customer" class="text-gray-400 hover:text-gray-700">
+                                    <x-icon name="pencil" class="h-4 w-4" />
+                                </button>
+                                <form method="POST" action="{{ route('customers.destroy', $customer) }}" onsubmit="return confirm('Delete this customer?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" title="Delete customer" class="text-gray-400 hover:text-red-600">
+                                        <x-icon name="trash" class="h-4 w-4" />
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
 
-                @if ($customer->notes)
-                    <p class="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-600">{{ $customer->notes }}</p>
-                @endif
+                        <template x-teleport="body">
+                            <x-modal title="Edit customer" state="open">
+                                <form id="customer-edit-form-{{ $customer->id }}" method="POST" action="{{ route('customers.update', $customer) }}" class="space-y-4">
+                                    @csrf
+                                    @method('PUT')
+                                    @include('customers.partials.fields', ['customer' => $customer])
+                                </form>
 
-                <div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 text-sm">
-                    <span class="text-gray-500">Lifetime spend</span>
-                    <span class="font-semibold text-gray-900">₱{{ number_format($customer->lifetimeSpend(), 2) }}</span>
-                </div>
+                                <x-slot:footer>
+                                    <button type="submit" form="customer-edit-form-{{ $customer->id }}" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
+                                        Save changes
+                                    </button>
+                                </x-slot:footer>
+                            </x-modal>
+                        </template>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="px-5 py-6 text-center text-gray-500">No customers on file yet.</td>
+                    </tr>
+                @endforelse
 
-                <template x-teleport="body">
-                    <x-modal title="Edit customer" state="open">
-                        <form id="customer-edit-form-{{ $customer->id }}" method="POST" action="{{ route('customers.update', $customer) }}" class="space-y-4">
-                            @csrf
-                            @method('PUT')
-                            @include('customers.partials.fields', ['customer' => $customer])
-                        </form>
-
-                        <x-slot:footer>
-                            <button type="submit" form="customer-edit-form-{{ $customer->id }}" class="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
-                                Save changes
-                            </button>
-                        </x-slot:footer>
-                    </x-modal>
-                </template>
-            </div>
-        @empty
-            <p class="col-span-full text-center text-gray-500">No customers on file yet.</p>
-        @endforelse
+                <tr x-cloak x-show="count() === 0 && rows.length > 0">
+                    <td colspan="8" class="px-5 py-6 text-center text-gray-500">No customers match your search.</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        /**
+         * The customer table. Rows are rendered on the server; this only keeps
+         * the search text and works out which rows are still on screen.
+         */
+        function customerTable(rows = []) {
+            return {
+                rows,
+                search: '',
+                needle() {
+                    return this.search.trim().toLowerCase();
+                },
+                matches(index) {
+                    const needle = this.needle();
+                    if (! needle) return true;
+                    const row = this.rows[index];
+                    return row ? row.includes(needle) : true;
+                },
+                count() {
+                    const needle = this.needle();
+                    if (! needle) return this.rows.length;
+                    return this.rows.filter((row) => row.includes(needle)).length;
+                },
+            };
+        }
+        window.customerTable = customerTable;
+    </script>
+@endpush

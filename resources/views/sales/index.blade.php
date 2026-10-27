@@ -36,6 +36,7 @@
                     <thead>
                         <tr class="text-xs uppercase tracking-wide text-gray-500">
                             <th class="pb-2 font-medium">Date</th>
+                            <th class="pb-2 font-medium">Receipt No.</th>
                             <th class="pb-2 font-medium">Customer</th>
                             <th class="pb-2 font-medium">Items</th>
                             <th class="pb-2 font-medium">Payment</th>
@@ -46,6 +47,7 @@
                         @forelse ($transactions as $sale)
                             <tr x-data="{ open: false }" @click="open = true" class="cursor-pointer transition-colors hover:bg-gray-50">
                                 <td class="py-3 text-gray-700">{{ $sale->created_at->format('n/j/Y, g:i:s A') }}</td>
+                                <td class="py-3 font-mono text-xs font-semibold text-gray-900">{{ $sale->receiptNumber() }}</td>
                                 <td class="py-3 text-gray-900">{{ $sale->customer?->name ?? 'Walk-in' }}</td>
                                 <td class="py-3 text-gray-700">{{ $sale->items->sum('quantity') }}</td>
                                 <td class="py-3">
@@ -56,8 +58,12 @@
                                 <td class="py-3 text-right font-semibold text-gray-900">₱{{ number_format($sale->total, 2) }}</td>
 
                                 <template x-teleport="body">
-                                    <x-modal title="Sale #{{ $sale->id }}" state="open" max-width="max-w-2xl">
-                                        <div class="grid grid-cols-1 gap-4 rounded-lg bg-gray-50 p-4 sm:grid-cols-3">
+                                    <x-modal title="Sale {{ $sale->receiptNumber() }}" state="open" max-width="max-w-2xl">
+                                        <div class="grid grid-cols-1 gap-4 rounded-lg bg-gray-50 p-4 sm:grid-cols-2 lg:grid-cols-4">
+                                            <div>
+                                                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Receipt No.</p>
+                                                <p class="mt-0.5 font-mono text-sm font-semibold text-gray-900">{{ $sale->receiptNumber() }}</p>
+                                            </div>
                                             <div>
                                                 <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Date</p>
                                                 <p class="mt-0.5 text-sm text-gray-900">{{ $sale->created_at->format('n/j/Y, g:i:s A') }}</p>
@@ -132,7 +138,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="py-6 text-center text-gray-500">No sales recorded yet.</td>
+                                <td colspan="6" class="py-6 text-center text-gray-500">No sales recorded yet.</td>
                             </tr>
                         @endforelse
                     </tbody>

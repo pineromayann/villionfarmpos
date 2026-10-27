@@ -12,7 +12,7 @@ class CustomerController extends Controller
     public function index(): View
     {
         return view('customers.index', [
-            'customers' => Customer::orderBy('name')->get(),
+            'customers' => Customer::withSum('sales as lifetime_spend', 'total')->orderBy('name')->get(),
         ]);
     }
 

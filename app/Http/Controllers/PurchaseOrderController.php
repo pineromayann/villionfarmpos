@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\ProductUnit;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
+use App\Procurement\SuggestionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,17 +16,24 @@ use Illuminate\View\View;
 
 class PurchaseOrderController extends Controller
 {
+    public function __construct(private readonly SuggestionService $suggestions)
+    {
+        //
+    }
+
     public function index(): View
     {
         return view('procurement.index', [
-            'orders' => PurchaseOrder::with(['supplier', 'items.product', 'items.unit'])->latest()->get(),
+            'orders' => PurchaseOrder::with(['supplier', 'items.product', 'items.unit', 'parentOrder', 'balanceOrders'])->latest()->get(),
             'products' => Product::with(['sellingUnits', 'baseUnit'])->orderBy('name')->get(),
             'suppliers' => Supplier::orderBy('name')->get(),
             'pendingOrders' => PurchaseOrder::where('status', 'ordered')->count(),
-            'spentThisMonth' => PurchaseOrder::where('status', 'received')
+            'spentThisMonth' => (float) PurchaseOrder::where('status', 'received')
                 ->where('received_at', '>=', now()->startOfMonth())
-                ->sum('total'),
-            'lifetimeSpend' => PurchaseOrder::where('status', 'received')->sum('total'),
+                ->sum(DB::raw('COALESCE(received_total, total)')),
+            'lifetimeSpend' => (float) PurchaseOrder::where('status', 'received')->sum(DB::raw('COALESCE(received_total, total)')),
+            'suggestions' => $this->suggestions->suggestions(),
+            'suggestionsOnOrder' => $this->suggestions->coveredByOpenOrders(),
         ]);
     }
 
@@ -80,15 +88,40 @@ class PurchaseOrderController extends Controller
         return back()->with('success', "Purchase order #{$purchaseOrder->id} updated.");
     }
 
-    public function receive(PurchaseOrder $purchaseOrder): RedirectResponse
+    public function receive(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         abort_unless($purchaseOrder->isOrdered(), 422, 'Only pending orders can be received.');
 
-        DB::transaction(function () use ($purchaseOrder) {
+        $receipts = $this->validatedReceipts($request, $purchaseOrder);
+        $note = $request->input('note');
+
+        $balance = DB::transaction(function () use ($purchaseOrder, $receipts, $note) {
+            $receivedTotal = 0.0;
+            $shortfallLines = [];
+
             foreach ($purchaseOrder->items as $item) {
+                $quantity = $receipts[$item->id] ?? (float) $item->quantity;
+
+                $item->update(['received_quantity' => $quantity]);
+
+                $shortfall = max(0.0, (float) $item->quantity - $quantity);
+
+                if ($shortfall > 0) {
+                    $shortfallLines[] = [
+                        'product_id' => $item->product_id,
+                        'quantity' => $shortfall,
+                        'unit_id' => $item->unit_id,
+                        'unit_cost' => $item->unit_cost,
+                    ];
+                }
+
+                if ($quantity <= 0) {
+                    continue;
+                }
+
                 $product = Product::lockForUpdate()->findOrFail($item->product_id);
                 $productUnit = $this->sellingUnit($product, $item->unit_id);
-                $baseQty = (float) $item->quantity * (float) $productUnit->conversion_to_base;
+                $baseQty = $quantity * (float) $productUnit->conversion_to_base;
 
                 $product->increment('stock', $baseQty);
 
@@ -103,13 +136,23 @@ class PurchaseOrderController extends Controller
                     'ref_id' => $purchaseOrder->id,
                     'user_id' => auth()->id(),
                 ]);
+
+                $receivedTotal += $quantity * (float) $item->unit_cost;
             }
 
             $purchaseOrder->update([
                 'status' => 'received',
                 'received_at' => now(),
+                'received_note' => $note !== null ? trim($note) : null,
+                'received_total' => round($receivedTotal, 2),
             ]);
+
+            return $this->raiseBalanceOrder($purchaseOrder, $shortfallLines);
         });
+
+        if ($balance !== null) {
+            return back()->with('success', "Purchase order #{$purchaseOrder->id} received with a shortfall — the missing items were raised as PO #{$balance->id}.");
+        }
 
         return back()->with('success', "Purchase order #{$purchaseOrder->id} received and added to stock.");
     }
@@ -169,6 +212,88 @@ class PurchaseOrderController extends Controller
         }
 
         return array_values($items);
+    }
+
+    /**
+     * Quantities actually received per order line, keyed by the line id.
+     *
+     * A request without any quantities receives every line in full.
+     *
+     * @return array<int, float>
+     */
+    private function validatedReceipts(Request $request, PurchaseOrder $purchaseOrder): array
+    {
+        $validated = $request->validate([
+            'received' => ['nullable', 'array'],
+            'received.*' => ['nullable', 'numeric', 'min:0'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $items = $purchaseOrder->items->keyBy('id');
+        $receipts = [];
+
+        foreach ($validated['received'] ?? [] as $itemId => $quantity) {
+            $item = $items->get((int) $itemId);
+
+            if ($item === null) {
+                throw ValidationException::withMessages([
+                    "received.{$itemId}" => 'That order line does not belong to this purchase order.',
+                ]);
+            }
+
+            if ((float) $quantity > (float) $item->quantity) {
+                throw ValidationException::withMessages([
+                    "received.{$itemId}" => "{$item->product->name}: cannot receive more than the {$item->quantity} ordered.",
+                ]);
+            }
+
+            $receipts[(int) $itemId] = (float) $quantity;
+        }
+
+        return $receipts;
+    }
+
+    /**
+     * Raise a follow-up order for the lines that never arrived.
+     *
+     * @param  array<int, array<string, mixed>>  $lines
+     */
+    private function raiseBalanceOrder(PurchaseOrder $purchaseOrder, array $lines): ?PurchaseOrder
+    {
+        if ($lines === []) {
+            return null;
+        }
+
+        $balance = PurchaseOrder::create([
+            'supplier_id' => $purchaseOrder->supplier_id,
+            'status' => 'ordered',
+            'order_date' => now()->toDateString(),
+            'expected_date' => $purchaseOrder->expected_date?->isFuture() ? $purchaseOrder->expected_date : null,
+            'total' => $this->totalFor($lines),
+            'note' => "Balance of PO #{$purchaseOrder->id}: ".$this->shortfallDescription($lines).'.',
+            'parent_order_id' => $purchaseOrder->id,
+            'created_by' => auth()->id(),
+        ]);
+
+        foreach ($lines as $line) {
+            $balance->items()->create($line + [
+                'line_total' => (float) $line['quantity'] * (float) $line['unit_cost'],
+            ]);
+        }
+
+        return $balance;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $lines
+     */
+    private function shortfallDescription(array $lines): string
+    {
+        $count = count($lines);
+
+        return $count === 1
+            ? '1 line was short on the delivery'
+            : "{$count} lines were short on the delivery";
     }
 
     /**

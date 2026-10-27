@@ -84,6 +84,7 @@ class ProductController extends Controller
             'stock' => $ignoreStock
                 ? ['nullable', 'numeric', 'min:0']
                 : ['required', 'numeric', 'min:0'],
+            'reorder_level' => ['nullable', 'numeric', 'min:0'],
             'base_unit_id' => ['required', 'integer', 'exists:units,id'],
             'note' => ['nullable', 'string', 'max:1000'],
         ]);

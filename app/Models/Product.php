@@ -34,6 +34,7 @@ class Product extends Model
         'dealers_price_cod',
         'terms_30_days',
         'stock',
+        'reorder_level',
         'base_unit_id',
         'note',
     ];
@@ -50,6 +51,7 @@ class Product extends Model
             'dealers_price_cod' => 'decimal:2',
             'terms_30_days' => 'decimal:2',
             'stock' => 'decimal:2',
+            'reorder_level' => 'decimal:2',
         ];
     }
 
@@ -116,7 +118,19 @@ class Product extends Model
 
     public function isLowStock(): bool
     {
-        return $this->stock <= self::LOW_STOCK_THRESHOLD;
+        return (float) $this->stock <= $this->reorderLevel();
+    }
+
+    /**
+     * The stock level at or below which this product should be restocked.
+     *
+     * A product may carry its own reorder level; when it does not, the
+     * application-wide default applies. The level is expressed in base units,
+     * the same unit `stock` is kept in.
+     */
+    public function reorderLevel(): float
+    {
+        return (float) ($this->reorder_level ?? self::LOW_STOCK_THRESHOLD);
     }
 
     public function isExpiringSoon(): bool
@@ -153,12 +167,21 @@ class Product extends Model
     }
 
     /**
+     * Products at or below their reorder level.
+     *
+     * The comparison is made per row against each product's own reorder level,
+     * falling back to the application default when it has none, so this scope
+     * agrees with Product::isLowStock().
+     *
      * @param  Builder<Product>  $query
      * @return Builder<Product>
      */
     public function scopeLowStock(Builder $query): Builder
     {
-        return $query->where('stock', '<=', self::LOW_STOCK_THRESHOLD);
+        return $query->whereRaw(
+            'stock <= COALESCE(reorder_level, ?)',
+            [self::LOW_STOCK_THRESHOLD]
+        );
     }
 
     /**

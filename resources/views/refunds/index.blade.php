@@ -27,7 +27,7 @@
                         <option value="">Select a sale...</option>
                         @foreach ($sales as $sale)
                             <option value="{{ $sale->id }}">
-                                #{{ $sale->id }} — {{ $sale->customer?->name ?? 'Walk-in' }} ({{ $sale->created_at->format('n/j/Y') }})
+                                {{ $sale->receiptNumber() }} — {{ $sale->customer?->name ?? 'Walk-in' }} ({{ $sale->created_at->format('n/j/Y') }})
                             </option>
                         @endforeach
                     </select>

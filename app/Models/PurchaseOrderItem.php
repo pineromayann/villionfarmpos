@@ -17,6 +17,7 @@ class PurchaseOrderItem extends Model
         'purchase_order_id',
         'product_id',
         'quantity',
+        'received_quantity',
         'unit_id',
         'unit_cost',
         'line_total',
@@ -29,6 +30,7 @@ class PurchaseOrderItem extends Model
     {
         return [
             'quantity' => 'decimal:2',
+            'received_quantity' => 'decimal:2',
             'unit_cost' => 'decimal:2',
             'line_total' => 'decimal:2',
         ];
@@ -56,5 +58,22 @@ class PurchaseOrderItem extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    /**
+     * Quantity actually received on this line, falling back to the ordered
+     * quantity for orders received before partial receiving was available.
+     */
+    public function receivedQuantity(): float
+    {
+        return (float) ($this->received_quantity ?? $this->quantity);
+    }
+
+    /**
+     * Quantity of this line that never arrived.
+     */
+    public function shortfall(): float
+    {
+        return max(0.0, (float) $this->quantity - $this->receivedQuantity());
     }
 }

@@ -3,6 +3,7 @@
     /** @var string $formMethod */
     /** @var string $formId */
     /** @var array<string, mixed> $orderConfig */
+    $draftTarget = $draftTarget ?? false;
 @endphp
 
 <form
@@ -15,6 +16,7 @@
         order: {{ Illuminate\Support\Js::from($orderConfig['order']) }},
         rows: {{ Illuminate\Support\Js::from($orderConfig['rows']) }},
     })"
+    @if ($draftTarget) @procurement-draft.window="applyDraft($event.detail)" @endif
     class="space-y-4"
 >
     @csrf

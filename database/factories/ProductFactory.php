@@ -30,6 +30,7 @@ class ProductFactory extends Factory
             'dealers_price_cod' => fake()->randomFloat(2, 5, 50),
             'terms_30_days' => fake()->optional()->randomFloat(2, 5, 50),
             'stock' => fake()->randomFloat(2, 0, 100),
+            'reorder_level' => null,
             'base_unit_id' => Unit::where('abbreviation', 'L')->value('id'),
             'note' => null,
         ];

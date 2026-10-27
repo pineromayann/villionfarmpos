@@ -47,6 +47,7 @@ test('the sales csv report can be exported and respects the date range filter', 
 
     expect($csv)->toContain('42.00');
     expect($csv)->not->toContain('99.00');
+    expect($csv)->toContain($inRange->receiptNumber());
 });
 
 test('the inventory pdf and csv reports can be exported', function () {

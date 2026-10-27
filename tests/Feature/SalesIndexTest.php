@@ -35,7 +35,9 @@ test('a transaction row opens a modal with its item details', function () {
     $response = $this->get(route('sales.index'));
 
     $response->assertOk();
-    $response->assertSee('Sale #'.$sale->id);
+    $response->assertSee('Sale '.$sale->receiptNumber());
+    $response->assertSee('Receipt No.');
+    $response->assertSee($sale->receiptNumber());
     $response->assertSee('Karate 2.5 WG');
     $response->assertSee('Line total');
     $response->assertSee('@click="open = true"', false);

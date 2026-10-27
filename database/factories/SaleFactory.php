@@ -27,4 +27,14 @@ class SaleFactory extends Factory
             'payment_method' => fake()->randomElement(['cash', 'card', 'mobile_money']),
         ];
     }
+
+    /**
+     * Give the sale an order receipt number, the way the point of sale does.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Sale $sale) {
+            $sale->update(['receipt_number' => $sale->deriveReceiptNumber()]);
+        });
+    }
 }
